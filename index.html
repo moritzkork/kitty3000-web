@@ -147,7 +147,7 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 #view-analysis{max-width:940px; margin:0 auto;}
 .acard{margin-bottom:22px;}
 .ah{color:#f3d9ff; font-size:24px; margin:0 0 6px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
-.tag{font-size:13px; font-weight:600; color:var(--purple2); background:linear-gradient(90deg,var(--orange),var(--orange2)); padding:3px 10px; border-radius:999px; letter-spacing:.02em;}
+.tag{font-size:13px; font-weight:600; color:var(--purple2); background:linear-gradient(90deg,var(--orange),var(--orange2)); padding:3px 10px; border-radius:999px; letter-spacing:.02em; white-space:nowrap;}
 .ap{color:#e9d4f2; font-size:15px; line-height:1.6; margin:8px 0;}
 .ap.small{font-size:13px; opacity:.85;}
 .ap code{background:rgba(0,0,0,.3); padding:1px 6px; border-radius:6px; font-size:.92em;}
@@ -366,11 +366,15 @@ const LABELS = ["Angry","Defence","Fighting","Happy","HuntingMind","Mating","Mot
 const MASCOTS = {panns:"assets/lion.png?v=2", ast:"assets/robot.png?v=2", cnn:"assets/sleeping.png?v=2"};
 const NICE = {panns:"PANNs", ast:"AST", cnn:"CNN"};
 // samples: number -> file -> real name (pinned order, matches the vote app idea)
+// MK: same 6 sounds and same Sound-N numbering as the vote app, so the presenter
+// MK: note maps across both. Order = the vote app's alphabetical order.
 const SAMPLES = [
-  [1,"samples/cat_complaining.mp3","Cat complaining"],
-  [2,"samples/cat_meow.mp3","Meow"],
-  [3,"samples/human_imitating_a_cat.mp3","Human imitating a cat"],
+  [1,"samples/cat_complaining.mp3","Complaining cat"],
+  [2,"samples/human_imitating_a_cat.mp3","Human imitating a meow"],
+  [3,"samples/cat_meow.mp3","Meow"],
   [4,"samples/two_cats_fighting.mp3","Two cats fighting"],
+  [5,"samples/barking_dog.mp3","Barking dog"],
+  [6,"samples/kitten.mp3","Kitten"],
 ];
 
 // ===================== STATE =====================

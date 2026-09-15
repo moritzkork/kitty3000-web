@@ -588,6 +588,8 @@ document.getElementById("analyseBtn").onclick = async function(){
   if(!pcm || !chosenModel) return;
   const rb = document.getElementById("resultBox");
   rb.innerHTML = '<p class="placeholder" style="margin-top:10px;">'+(NICE[chosenModel]||chosenModel)+' is listening…</p>';
+  // on mobile the result card stacks below the input — scroll to it so the user sees it load
+  if(window.innerWidth <= 820){ rb.scrollIntoView({behavior:"smooth", block:"start"}); }
   const wav = encodeWav(selectedPcm(), sr);
   const fd = new FormData(); fd.append("file", wav, "snippet.wav");
   try{

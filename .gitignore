@@ -1,0 +1,4 @@
+# Firebase deploy cache (local only)
+.firebase/
+# macOS
+.DS_Store

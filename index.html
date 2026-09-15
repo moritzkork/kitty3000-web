@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kitty3000</title>
+<style>
+/* MK: self-hosted so no request goes to Google (visitor IP stays private). SIL OFL, see assets/OFL-Fredoka.txt */
+@font-face{ font-family:'Fredoka'; src:url('assets/fredoka-var.woff2') format('woff2'); font-weight:400 700; font-style:normal; font-display:swap; }
+</style>
+<style>
+/* MK: Kitty3000 standalone front end. Pure HTML/CSS/JS, calls the Cloud Run API directly.
+   MK: Full design freedom (Streamlit could not do this). API URL is set in the config below. */
+:root{
+  --orange:#F5821F; --orange2:#ff9d3f; --purple:#561269; --purple2:#3a0c4b; --ink:#2a0f36;
+}
+*{box-sizing:border-box; font-family:'Fredoka',system-ui,'Segoe UI',sans-serif;}
+html,body{margin:0; min-height:100%;}
+body{
+  background:radial-gradient(circle at 50% 0%, #6f1a86, var(--purple) 55%, var(--purple2)) fixed;
+  color:#fff;
+}
+button{font-family:inherit; cursor:pointer;}
+.hidden{display:none !important;}
+
+/* ---------- splash ---------- */
+#splash{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; gap:10px;}
+#splash img.banner{width:min(900px,92vw); filter:drop-shadow(0 18px 40px rgba(0,0,0,.4)); margin-bottom:6px;}
+#splash .start{margin-top:18px; border:none; border-radius:18px; padding:18px 42px; font-size:22px; font-weight:700;
+  color:var(--purple2); background:linear-gradient(90deg,var(--orange),var(--orange2)); box-shadow:0 10px 26px rgba(245,130,31,.55);
+  transition:transform .08s ease;}
+#splash .start:hover{transform:translateY(-2px) scale(1.02);}
+#splash .hint{color:#e9d4f2; font-size:15px; opacity:.85; margin-top:12px;}
+#splash{position:relative;}
+.splash-foot{position:absolute; left:0; right:0; bottom:0; padding:14px 20px calc(14px + env(safe-area-inset-bottom,0px)); text-align:center; font-size:12.5px; color:#c9a9dc; line-height:1.7;}
+.splash-foot a{color:#e9d4f2; text-decoration:none; border-bottom:1px solid rgba(233,212,242,.3); cursor:pointer;}
+.splash-foot .hrt{color:var(--orange);}
+.splash-foot .sfl{display:block; margin-top:3px;}
+
+/* ---------- loading ---------- */
+#loading{position:fixed; inset:0; z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; text-align:center; padding:40px;
+  background:radial-gradient(circle at 50% 18%, #6f1a86, var(--purple) 55%, var(--purple2));}
+#loading .wm{font-weight:700; font-size:56px; color:var(--orange); -webkit-text-stroke:3px #fff; text-shadow:0 6px 0 rgba(0,0,0,.18);}
+#loading img{width:180px; filter:drop-shadow(0 14px 18px rgba(0,0,0,.35)); animation:boot 1.6s ease-in-out infinite;}
+@keyframes boot{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-16px) rotate(3deg)}}
+#loading .msg{font-size:24px; font-weight:600; min-height:32px;}
+#loading .bar{width:min(520px,86vw); height:24px; background:rgba(255,255,255,.16); border-radius:999px; overflow:hidden; border:2px solid rgba(255,255,255,.35);}
+#loading .fill{height:100%; width:6%; border-radius:999px; background:linear-gradient(90deg,var(--orange),var(--orange2)); box-shadow:0 0 16px rgba(245,130,31,.7); animation:grow 60s linear forwards;}
+@keyframes grow{from{width:6%}to{width:96%}}
+#loading .sub{font-size:14px; color:#e9d4f2; opacity:.9; max-width:480px;}
+
+/* ---------- app ---------- */
+#app{max-width:1160px; margin:0 auto; padding:16px 20px 50px;}
+.topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+.topbar .brand{font-weight:700; font-size:26px; color:var(--orange); -webkit-text-stroke:1.5px #fff;}
+.topbar .demo{display:flex; align-items:center; gap:8px; font-size:14px; color:#e9d4f2;}
+.switch{position:relative; width:44px; height:24px; background:rgba(255,255,255,.2); border-radius:999px; border:none; transition:background .15s;}
+.switch.on{background:var(--orange);}
+.switch::after{content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition:left .15s;}
+.switch.on::after{left:23px;}
+.cols{display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start;}
+@media(max-width:820px){.cols{grid-template-columns:1fr;}}
+.card{background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16); border-radius:20px; padding:20px;}
+.tabs{display:flex; gap:8px; margin-bottom:18px;}
+.tab{padding:9px 16px; border-radius:12px; font-weight:600; background:rgba(255,255,255,.1); border:none; color:#fff;}
+.tab.on{background:var(--orange); color:var(--purple2);}
+.panel{margin-top:0;}
+.drop{display:block; margin-top:2px; border:2px dashed rgba(255,255,255,.3); border-radius:16px; padding:40px 22px; text-align:center; color:#e9d4f2; font-size:16px; background:rgba(255,255,255,.05); cursor:pointer; transition:background .15s, border-color .15s;}
+.drop:hover{background:rgba(245,130,31,.10); border-color:var(--orange); color:#fff;}
+.drop .di{display:block; font-size:34px; margin-bottom:8px; opacity:.9;}
+.sel{width:100%; padding:13px 15px; border-radius:12px; background:#fff; color:var(--purple2); font-weight:600; font-size:16px; border:none;}
+/* custom dropdown (native <select> option lists can't be themed) */
+.dd{position:relative;}
+.dd-btn{width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-radius:12px; background:#fff; color:var(--purple2); font-weight:600; font-size:16px; border:none; cursor:pointer; font-family:inherit; text-align:left;}
+.dd-arrow{color:var(--purple); font-size:14px; transition:transform .15s;}
+.dd.open .dd-arrow{transform:rotate(180deg);}
+.dd-list{position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:30; background:var(--purple2); border:1px solid rgba(255,255,255,.18); border-radius:14px; padding:6px; box-shadow:0 16px 40px rgba(0,0,0,.45); max-height:300px; overflow-y:auto;}
+.dd-item{padding:12px 14px; border-radius:10px; color:#f3d9ff; font-weight:600; cursor:pointer;}
+.dd-item:hover{background:rgba(245,130,31,.18); color:#fff;}
+.dd-item.on{background:var(--orange); color:var(--purple2);}
+.btn-lite{background:rgba(255,255,255,.12); border:none; color:#fff; padding:12px 18px; border-radius:12px; font-weight:600; font-size:16px;}
+.loaded-cap{color:#e9d4f2; font-size:14px; margin:2px 0 8px;}
+audio{display:none;}
+/* custom audio player in the brand look */
+.player{display:flex; align-items:center; gap:12px; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:10px 14px; margin:8px 0;}
+.pbtn{width:40px; height:40px; flex:none; border:none; border-radius:50%; cursor:pointer; font-size:15px; color:var(--purple2); background:linear-gradient(90deg,var(--orange),var(--orange2)); box-shadow:0 4px 12px rgba(245,130,31,.4);}
+.ptime{font-size:13px; color:#e9d4f2; min-width:34px; font-variant-numeric:tabular-nums;}
+.pbar{flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,.2); cursor:pointer; position:relative;}
+.pfill{height:100%; border-radius:999px; background:linear-gradient(90deg,var(--orange),var(--orange2)); width:0;}
+canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); border-radius:10px;}
+.range{margin-top:14px;}
+.range summary{cursor:pointer; color:#f3d9ff; font-weight:600;}
+/* dual-thumb range: two sliders sharing one track (start + end on one line) */
+.dual{position:relative; height:36px; margin-top:6px;}
+.dual .dbase{position:absolute; top:15px; left:0; right:0; height:6px; border-radius:999px; background:rgba(255,255,255,.22);}
+.dual .dfill{position:absolute; top:15px; height:6px; border-radius:999px; background:linear-gradient(90deg,var(--orange),var(--orange2));}
+.dual input[type=range]{position:absolute; top:0; left:0; width:100%; height:36px; margin:0; background:none; pointer-events:none; -webkit-appearance:none; appearance:none;}
+.dual input[type=range]::-webkit-slider-runnable-track{background:none; border:none;}
+.dual input[type=range]::-moz-range-track{background:none; border:none;}
+.dual input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; appearance:none; pointer-events:auto; width:20px; height:20px; border-radius:50%; background:#fff; border:3px solid var(--orange); cursor:pointer;}
+.dual input[type=range]::-moz-range-thumb{pointer-events:auto; width:20px; height:20px; border-radius:50%; background:#fff; border:3px solid var(--orange); cursor:pointer;}
+.mlabel{margin:18px 0 8px; font-weight:600; color:#f3d9ff;}
+.models{display:flex; gap:12px;}
+.mbtn{flex:1; border:2px solid rgba(255,255,255,.25); border-radius:16px; padding:10px 6px 12px; text-align:center; background:rgba(255,255,255,.06); color:#fff;}
+.mbtn.on{border-color:var(--orange); background:rgba(245,130,31,.18);}
+.mbtn img{width:100%; max-width:110px; height:96px; object-fit:contain; display:block; margin:0 auto 6px;}
+.mbtn b{font-size:15px; font-weight:600;}
+.analyse{margin-top:16px; width:100%; padding:15px; border-radius:14px; border:none; background:linear-gradient(90deg,var(--orange),var(--orange2)); color:var(--purple2); font-weight:700; font-size:18px; box-shadow:0 8px 20px rgba(245,130,31,.5);}
+.analyse:disabled{opacity:.5;}
+.verdict{font-size:15px; color:#f3d9ff; text-transform:uppercase; letter-spacing:.06em; font-weight:600;}
+.big{font-size:60px; font-weight:700; line-height:1; margin:4px 0 2px;}
+.conf{color:#e9d4f2; font-size:16px; margin-bottom:4px;}
+.catscore{display:inline-block; margin-bottom:16px; padding:4px 12px; border-radius:999px; background:rgba(255,255,255,.12); color:#fff; font-size:14px; font-weight:600;}
+.brow{display:grid; grid-template-columns:112px 1fr 44px; align-items:center; gap:8px 12px;}
+.brow .ml{text-align:right; font-weight:600; font-size:15px; color:#e9d4f2;}
+.brow .ml.top{color:#fff;}
+.brow .pv{font-size:14px; font-weight:600; color:#e9d4f2; text-align:right;}
+.brow .pv.top{color:#fff;}
+/* axis header row: 0 / 50 / 100% scale over the bars */
+.axis{display:flex; justify-content:space-between; font-size:12px; color:#c9a9dc; border-bottom:1px solid rgba(255,255,255,.18); padding-bottom:3px;}
+.trk{height:22px; background:rgba(255,255,255,.14); border-radius:8px; overflow:hidden;
+  background-image:linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px);
+  background-size:25% 100%;}
+.trk .f{height:100%; background:linear-gradient(90deg,var(--orange),var(--orange2)); border-radius:8px; width:0; transition:width .5s cubic-bezier(.2,.8,.2,1);}
+.warn{margin-top:14px; background:#fff4e5; color:#8a4b00; border-radius:10px; padding:10px 14px; font-weight:500;}
+.placeholder{color:#e9d4f2; opacity:.8;}
+/* ---------- imprint / credits footer ---------- */
+.imprint{max-width:940px; margin:34px auto 0; padding:18px 20px 4px; text-align:center; font-size:13px; line-height:1.8; color:#c9a9dc; border-top:1px solid rgba(255,255,255,.1);}
+.imprint a{color:#e9d4f2; text-decoration:none; border-bottom:1px solid rgba(233,212,242,.35);}
+.imprint a:hover{color:#fff; border-bottom-color:#fff;}
+.imprint .hrt{color:var(--orange);}
+.imprint .pending{color:#9a7bb0; font-size:12px;}
+.imprint-links{margin-top:10px;}
+.imprint-links a{cursor:pointer;}
+/* legal page */
+.legal{max-width:820px; margin:0 auto;}
+.legal h2{color:#f3d9ff; font-size:24px; margin:22px 0 6px;}
+.legal h2:first-of-type{margin-top:0;}
+.legal h3{color:var(--orange); font-size:17px; margin:18px 0 4px;}
+.legal p{color:#e9d4f2; font-size:15px; line-height:1.7; margin:6px 0;}
+.legal .ll{color:#c9a9dc; font-size:13.5px;}
+.legal a{color:#fff; border-bottom:1px solid rgba(255,255,255,.4); text-decoration:none;}
+.legal hr{border:none; border-top:1px solid rgba(255,255,255,.14); margin:26px 0;}
+/* ---------- nav + analysis / deep dive ---------- */
+.nav{display:flex; gap:10px; margin-bottom:18px;}
+.navb{padding:11px 20px; border-radius:14px; font-weight:600; font-size:16px; font-family:inherit; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; cursor:pointer;}
+.navb.on{background:var(--orange); color:var(--purple2); border-color:var(--orange);}
+#view-analysis{max-width:940px; margin:0 auto;}
+.acard{margin-bottom:22px;}
+.ah{color:#f3d9ff; font-size:24px; margin:0 0 6px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+.tag{font-size:13px; font-weight:600; color:var(--purple2); background:linear-gradient(90deg,var(--orange),var(--orange2)); padding:3px 10px; border-radius:999px; letter-spacing:.02em;}
+.ap{color:#e9d4f2; font-size:15px; line-height:1.6; margin:8px 0;}
+.ap.small{font-size:13px; opacity:.85;}
+.ap code{background:rgba(0,0,0,.3); padding:1px 6px; border-radius:6px; font-size:.92em;}
+#spec{width:100%; height:auto; display:block; background:#160a1f; border-radius:12px; margin:6px 0;}
+.cmp{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:16px;}
+@media(max-width:720px){.cmp{grid-template-columns:1fr;}}
+.cmpcol{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:16px; text-align:center;}
+.cmpcol img{width:74px; height:74px; object-fit:contain;}
+.cmpcol .cm{font-weight:700; color:#fff; margin:4px 0 2px;}
+.cmpcol .cl{font-size:22px; font-weight:700; color:var(--orange); line-height:1.1;}
+.cmpcol .cc{font-size:13px; color:#e9d4f2; margin-bottom:8px;}
+.cmpcol .cbar{height:6px; border-radius:6px; background:rgba(255,255,255,.14); margin:4px 0; overflow:hidden;}
+.cmpcol .cbar i{display:block; height:100%; background:linear-gradient(90deg,var(--orange),var(--orange2)); border-radius:6px;}
+.cmpcol .cbl{display:flex; justify-content:space-between; font-size:11px; color:#c9a9dc;}
+/* nerd explainer */
+.nerd h2{color:#f3d9ff; font-size:24px; margin:0 0 4px;}
+.nerd h3{color:var(--orange); font-size:18px; margin:22px 0 6px;}
+.nerd p{color:#e9d4f2; font-size:15px; line-height:1.65; margin:8px 0;}
+.nerd b{color:#fff;}
+.nerd code{background:rgba(0,0,0,.3); padding:1px 6px; border-radius:6px; font-size:.92em; color:#ffd9a8;}
+.nerd .lead{font-size:16px;}
+.nerd ul{margin:8px 0 8px 2px; padding:0; list-style:none;}
+.nerd li{color:#e9d4f2; font-size:15px; line-height:1.6; margin:7px 0; padding-left:22px; position:relative;}
+.nerd li::before{content:"🐾"; position:absolute; left:0; font-size:12px; top:3px;}
+.nerd .box{background:rgba(0,0,0,.18); border-left:3px solid var(--orange); border-radius:0 12px 12px 0; padding:12px 16px; margin:14px 0;}
+.nerd .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:12px 0;}
+@media(max-width:720px){.nerd .grid3{grid-template-columns:1fr;}}
+.nerd .mcard{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:14px;}
+.nerd .mcard h4{margin:0 0 6px; color:#fff; font-size:16px; display:flex; align-items:center; gap:8px;}
+.nerd .mcard img{width:26px; height:26px; object-fit:contain; vertical-align:middle;}
+.nerd .mcard .pro{color:#9fe6b0;} .nerd .mcard .con{color:#f5b8a0;}
+.nerd .mcard p{font-size:13.5px; margin:5px 0;}
+</style>
+</head>
+<body>
+
+<!-- ============ SPLASH ============ -->
+<section id="splash">
+  <img class="banner" src="assets/banner.png?v=2" alt="Kitty3000">
+  <button class="start" id="startBtn">🐾 Start listening</button>
+  <footer class="splash-foot">
+    <span>Made with <span class="hrt">♥</span> by
+      <a href="https://de.linkedin.com/in/cevenknowles/de" target="_blank" rel="noopener">Ceven</a>,
+      <a href="https://www.linkedin.com/in/christos-efthymiou-b44696363/" target="_blank" rel="noopener">Chris</a>,
+      <a href="https://uk.linkedin.com/in/sebastian-stohrer" target="_blank" rel="noopener">Sebastian</a> &amp;
+      <a href="https://www.linkedin.com/in/moritzkork" target="_blank" rel="noopener">Moritz</a> ·
+      <a href="https://www.lewagon.com/data-science-course" target="_blank" rel="noopener">Le Wagon</a> 2026</span>
+    <span class="sfl"><a id="splashImpressum">Impressum</a> · <a id="splashDatenschutz">Datenschutz</a></span>
+  </footer>
+</section>
+
+<!-- ============ LOADING ============ -->
+<section id="loading" class="hidden">
+  <div class="wm">KITTY3000</div>
+  <img src="assets/robot.png?v=2" alt="">
+  <div class="msg" id="loadMsg">Waking up the cats…</div>
+  <div class="bar"><div class="fill"></div></div>
+  <div class="sub">The models sleep when nobody visits. First wake-up takes up to a minute — worth it.</div>
+</section>
+
+<!-- ============ APP ============ -->
+<main id="app" class="hidden">
+  <div class="topbar">
+    <div class="brand">KITTY3000</div>
+    <label class="demo">Demo mode <button class="switch" id="demoSwitch" title="Hide sample names for screen sharing"></button></label>
+  </div>
+
+  <div class="nav">
+    <button class="navb on" data-view="tool">🐾 The tool</button>
+    <button class="navb" data-view="analysis">🔬 Deep dive</button>
+  </div>
+
+  <div id="view-tool">
+  <div class="cols">
+    <!-- input -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab on" data-tab="samples">Samples</button>
+        <button class="tab" data-tab="upload">Upload</button>
+        <button class="tab" data-tab="record">Record</button>
+      </div>
+
+      <div class="panel" id="tab-samples">
+        <div class="dd" id="sampleDD">
+          <button class="dd-btn" id="sampleBtn"><span id="sampleLabel">Pick a sample…</span><span class="dd-arrow">▾</span></button>
+          <div class="dd-list hidden" id="sampleList"></div>
+        </div>
+      </div>
+      <div class="panel hidden" id="tab-upload">
+        <label class="drop"><span class="di">🎵</span>Drop an mp3 / wav here, or click to choose
+          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav" style="display:none">
+        </label>
+      </div>
+      <div class="panel hidden" id="tab-record">
+        <button class="btn-lite" id="recBtn">● Start recording</button>
+        <div class="loaded-cap" id="recHint"></div>
+      </div>
+
+      <div id="loadedBox" class="hidden">
+        <div class="loaded-cap" id="loadedCap"></div>
+        <audio id="player"></audio>
+        <div class="player">
+          <button class="pbtn" id="pbtn" aria-label="Play">▶</button>
+          <span class="ptime" id="ptime">0:00</span>
+          <div class="pbar" id="pbar"><div class="pfill" id="pfill"></div></div>
+          <span class="ptime" id="pdur">0:00</span>
+        </div>
+        <canvas class="wave" id="wave" width="600" height="90"></canvas>
+        <details class="range">
+          <summary>Only analyse a part of the recording</summary>
+          <div class="loaded-cap" id="rangeCap"></div>
+          <div class="dual">
+            <div class="dbase"></div>
+            <div class="dfill" id="rangeFill"></div>
+            <input type="range" id="rStart" min="0" max="100" value="0">
+            <input type="range" id="rEnd" min="0" max="100" value="100">
+          </div>
+          <button class="btn-lite" id="playSel" style="margin-top:12px;">▶ Play selection</button>
+        </details>
+
+        <div class="mlabel">Which cat should listen?</div>
+        <div class="models" id="models"></div>
+
+        <button class="analyse" id="analyseBtn">🐾 Analyse</button>
+        <button class="btn-lite" id="clearBtn" style="margin-top:10px; width:100%;">✕ Clear and load another sound</button>
+      </div>
+    </div>
+
+    <!-- result -->
+    <div class="card">
+      <div id="resultBox"><p class="placeholder">Load a sound and a model on the left, then press Analyse.</p></div>
+    </div>
+  </div>
+  </div><!-- /view-tool -->
+
+  <!-- ============ ANALYSIS / DEEP DIVE ============ -->
+  <div id="view-analysis" class="hidden">
+
+    <div class="card acard">
+      <h2 class="ah">Mel spectrogram <span class="tag">what the models actually see</span></h2>
+      <p class="ap" id="specHint">Load a sound on <b>The tool</b> first — then this shows its mel spectrogram.</p>
+      <canvas id="spec" width="920" height="360"></canvas>
+      <p class="ap small">Time runs left→right, pitch bottom→top on the <b>mel</b> scale (spacing that matches how ears resolve pitch — fine low, coarse high). Colour is energy in decibels: dark = quiet, bright = loud. Frequencies are capped at 8&nbsp;kHz because that is where cat calls live and where the training config (<code>fmax=8000</code>) cuts off.</p>
+    </div>
+
+    <div class="card acard">
+      <h2 class="ah">All three models on this sound <span class="tag">same clip, three verdicts</span></h2>
+      <p class="ap">Every model gets the exact same audio (your snippet selection, if you set one). They do not see each other's answers.</p>
+      <button class="analyse" id="cmpBtn" style="max-width:320px;">🔬 Compare all three</button>
+      <div class="cmp" id="cmpBox"></div>
+    </div>
+
+    <div class="card acard nerd" id="explain"></div>
+
+  </div><!-- /view-analysis -->
+
+  <!-- ============ LEGAL: Impressum + Datenschutz ============ -->
+  <div id="view-legal" class="hidden">
+    <div class="card acard legal">
+      <button class="btn-lite" id="legalBack" style="margin-bottom:18px;">← Back</button>
+
+      <h2 id="impressum">Impressum</h2>
+      <p class="ll">Angaben gemäß § 5 DDG</p>
+      <p>Moritz Kork<br>Immanuelkirchstraße 3<br>10405 Berlin<br>Deutschland</p>
+      <h3>Kontakt</h3>
+      <p>E-Mail: <a href="mailto:mail@moritzkork.de">mail@moritzkork.de</a></p>
+      <h3>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h3>
+      <p>Moritz Kork (Anschrift wie oben)</p>
+      <p class="ll">Kitty3000 ist ein nicht-kommerzielles Studienprojekt, entstanden im Rahmen des Le&nbsp;Wagon Data Science &amp; AI Bootcamps (Summer 2026).</p>
+
+      <hr>
+
+      <h2 id="datenschutz">Datenschutzerklärung</h2>
+
+      <h3>1. Verantwortlicher</h3>
+      <p>Moritz Kork, Immanuelkirchstraße 3, 10405 Berlin, Deutschland · <a href="mailto:mail@moritzkork.de">mail@moritzkork.de</a></p>
+
+      <h3>2. Welche Daten wir verarbeiten</h3>
+      <p><b>Server-Logdaten.</b> Beim Aufruf der Seite werden durch unseren Hoster automatisch Zugriffsdaten verarbeitet (u.&nbsp;a. IP-Adresse, Zeitpunkt, aufgerufene Datei, Browsertyp). Das ist technisch notwendig, um die Seite auszuliefern und den Betrieb sicher zu halten.</p>
+      <p><b>Audiodaten.</b> Wenn Sie einen Ton hochladen, aufnehmen oder ein Beispiel abspielen und „Analyse" starten, wird der ausgewählte Audioausschnitt an unsere Analyse-API gesendet, dort klassifiziert und das Ergebnis zurückgegeben. Die Audiodaten werden ausschließlich zur Berechnung verarbeitet und <b>nicht dauerhaft gespeichert</b>.</p>
+
+      <h3>3. Zweck und Rechtsgrundlage</h3>
+      <p>Die Verarbeitung dient der Bereitstellung der Seite und der von Ihnen angefragten Klanganalyse. Rechtsgrundlage ist Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO (berechtigtes Interesse am Betrieb der Seite) sowie, für die von Ihnen aktiv ausgelöste Analyse, Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a DSGVO (Einwilligung durch die aktive Nutzung).</p>
+
+      <h3>4. Hosting und Auftragsverarbeiter</h3>
+      <p>Die Seite wird über <b>Firebase Hosting</b> bereitgestellt, die Analyse läuft über <b>Google Cloud Run</b> (Region europe-west1), beides Dienste von Google. Dabei kann eine Übermittlung in Drittländer (u.&nbsp;a. USA) stattfinden; Google stützt diese auf die EU-Standardvertragsklauseln bzw. das EU-US Data Privacy Framework.</p>
+
+      <h3>5. Cookies und Tracking</h3>
+      <p>Diese Seite setzt <b>keine</b> Tracking-Cookies und nutzt <b>kein</b> Web-Analyse-Werkzeug. Es findet keine Profilbildung statt.</p>
+
+      <h3>6. Ihre Rechte</h3>
+      <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch. Wenden Sie sich dazu an die oben genannte E-Mail-Adresse. Zudem können Sie sich bei einer Datenschutz-Aufsichtsbehörde beschweren (z.&nbsp;B. der Berliner Beauftragten für Datenschutz und Informationsfreiheit).</p>
+
+      <p class="ll">Stand: September 2026.</p>
+    </div>
+  </div><!-- /view-legal -->
+
+  <footer class="imprint">
+    Made with <span class="hrt">♥</span> in Athens, Berlin &amp; London — as part of the
+    <a href="https://www.lewagon.com/data-science-course" target="_blank" rel="noopener">Le Wagon Data Science &amp; AI</a>
+    bootcamp, Summer 2026, by
+    <a href="https://de.linkedin.com/in/cevenknowles/de" target="_blank" rel="noopener">Ceven</a>,
+    <a href="https://www.linkedin.com/in/christos-efthymiou-b44696363/" target="_blank" rel="noopener">Chris</a>,
+    <a href="https://uk.linkedin.com/in/sebastian-stohrer" target="_blank" rel="noopener">Sebastian</a> and
+    <a href="https://www.linkedin.com/in/moritzkork" target="_blank" rel="noopener">Moritz</a>.
+    <div class="imprint-links">
+      <a href="#impressum" id="linkImpressum">Impressum</a> · <a href="#datenschutz" id="linkDatenschutz">Datenschutz</a>
+    </div>
+  </footer>
+</main>
+
+<script>
+// ===================== CONFIG =====================
+const API_URL = "https://kitty3000-api-1097344477099.europe-west1.run.app";
+const LABELS = ["Angry","Defence","Fighting","Happy","HuntingMind","Mating","MotherCall","Paining","Resting","Warning"];
+const MASCOTS = {panns:"assets/lion.png?v=2", ast:"assets/robot.png?v=2", cnn:"assets/sleeping.png?v=2"};
+const NICE = {panns:"PANNs", ast:"AST", cnn:"CNN"};
+// samples: number -> file -> real name (pinned order, matches the vote app idea)
+const SAMPLES = [
+  [1,"samples/cat_complaining.mp3","Cat complaining"],
+  [2,"samples/cat_meow.mp3","Meow"],
+  [3,"samples/human_imitating_a_cat.mp3","Human imitating a cat"],
+  [4,"samples/two_cats_fighting.mp3","Two cats fighting"],
+];
+
+// ===================== STATE =====================
+let models = [];
+let chosenModel = null;
+let demoMode = false;
+let pcm = null;           // Float32Array mono of the loaded clip
+let sr = 32000;           // sample rate of the decoded clip
+let sourceName = "";      // display name (masked in demo mode)
+const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+// ===================== SPLASH -> LOADING -> APP =====================
+document.getElementById("startBtn").onclick = enter;
+async function enter(){
+  document.getElementById("splash").classList.add("hidden");
+  document.getElementById("loading").classList.remove("hidden");
+  try{
+    const r = await fetch(API_URL + "/models");
+    const info = await r.json();
+    models = info.models.filter(m => m !== "dummy");
+    if(models.length === 0) models = info.models;
+  }catch(e){
+    models = ["panns"]; // fallback so the UI still shows
+  }
+  chosenModel = models[0];
+  buildModelButtons();
+  document.getElementById("loading").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+}
+
+// ===================== DEMO MODE =====================
+const demoSwitch = document.getElementById("demoSwitch");
+demoSwitch.onclick = () => { demoMode = !demoMode; demoSwitch.classList.toggle("on", demoMode); buildSampleSelect(); };
+
+// ===================== TABS =====================
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("on"));
+  t.classList.add("on");
+  document.querySelectorAll(".panel").forEach(p => p.classList.add("hidden"));
+  document.getElementById("tab-" + t.dataset.tab).classList.remove("hidden");
+});
+
+// ===================== SAMPLES (custom dropdown) =====================
+let chosenSample = "";   // file path of the picked sample, "" = none
+function buildSampleSelect(){
+  const list = document.getElementById("sampleList");
+  list.innerHTML = "";
+  SAMPLES.forEach(([n,file,real]) => {
+    const it = document.createElement("div");
+    it.className = "dd-item" + (file === chosenSample ? " on" : "");
+    it.textContent = demoMode ? ("Sound " + n) : ("Sound " + n + " · " + real);
+    it.dataset.file = file;
+    it.dataset.masked = "Sound " + n;
+    it.dataset.real = "sample " + real;
+    it.onclick = async () => {
+      chosenSample = file;
+      document.getElementById("sampleLabel").textContent = it.textContent;
+      closeSampleDD();
+      const blob = await (await fetch(file)).blob();
+      await loadBlob(blob, demoMode ? it.dataset.masked : it.dataset.real);
+    };
+    list.appendChild(it);
+  });
+  // keep the button label in sync with demo-mode relabeling
+  if(chosenSample){
+    const cur = SAMPLES.find(s => s[1] === chosenSample);
+    if(cur) document.getElementById("sampleLabel").textContent =
+      demoMode ? ("Sound " + cur[0]) : ("Sound " + cur[0] + " · " + cur[2]);
+  }
+}
+function openSampleDD(){ document.getElementById("sampleDD").classList.add("open"); document.getElementById("sampleList").classList.remove("hidden"); }
+function closeSampleDD(){ document.getElementById("sampleDD").classList.remove("open"); document.getElementById("sampleList").classList.add("hidden"); }
+document.getElementById("sampleBtn").onclick = (e) => {
+  e.stopPropagation();
+  const open = document.getElementById("sampleDD").classList.contains("open");
+  if(open) closeSampleDD(); else openSampleDD();
+};
+document.addEventListener("click", (e) => {
+  if(!document.getElementById("sampleDD").contains(e.target)) closeSampleDD();
+});
+
+// ===================== UPLOAD =====================
+document.querySelector(".drop").onclick = () => document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange = async (e) => {
+  const f = e.target.files[0];
+  if(f) await loadBlob(f, "file " + f.name);
+};
+
+// ===================== RECORD =====================
+let mediaRec = null, chunks = [];
+document.getElementById("recBtn").onclick = async function(){
+  if(mediaRec && mediaRec.state === "recording"){ mediaRec.stop(); return; }
+  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  chunks = [];
+  mediaRec = new MediaRecorder(stream);
+  mediaRec.ondataavailable = ev => chunks.push(ev.data);
+  mediaRec.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    const blob = new Blob(chunks, {type:"audio/webm"});
+    await loadBlob(blob, "your recording");
+  };
+  mediaRec.start();
+  this.textContent = "■ Stop recording";
+  document.getElementById("recHint").textContent = "Recording… click again to stop.";
+  const btn = this;
+  mediaRec.addEventListener("stop", () => { btn.textContent = "● Start recording"; document.getElementById("recHint").textContent = ""; });
+};
+
+// ===================== LOAD + DECODE =====================
+async function loadBlob(blob, name){
+  sourceName = name;
+  const buf = await blob.arrayBuffer();
+  let audio;
+  try{ audio = await ac.decodeAudioData(buf.slice(0)); }
+  catch(err){ alert("Could not read this file. Please use a normal mp3 or wav."); return; }
+  // mono mix
+  const ch = audio.numberOfChannels;
+  const len = audio.length;
+  const mono = new Float32Array(len);
+  for(let c=0;c<ch;c++){ const d = audio.getChannelData(c); for(let i=0;i<len;i++) mono[i]+=d[i]/ch; }
+  pcm = mono; sr = audio.sampleRate;
+
+  // player uses the original blob
+  document.getElementById("player").src = URL.createObjectURL(blob);
+  const dur = len / sr;
+  document.getElementById("loadedCap").textContent = "Loaded: " + name + " · " + dur.toFixed(1) + " s";
+  drawWave();
+  // range sliders
+  const rs = document.getElementById("rStart"), re = document.getElementById("rEnd");
+  rs.value = 0; re.value = 100; updateRangeCap();
+
+  document.getElementById("loadedBox").classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.add("hidden"));
+}
+
+function drawWave(){
+  const cv = document.getElementById("wave"); const ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height; ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#7fc2ff";
+  const step = Math.max(1, Math.floor(pcm.length / W));
+  for(let x=0; x<W; x++){
+    let peak = 0;
+    for(let j=0;j<step;j++){ const v = Math.abs(pcm[x*step+j]||0); if(v>peak) peak=v; }
+    const h = peak * H; ctx.fillRect(x, (H-h)/2, 1, h||1);
+  }
+}
+
+document.getElementById("rStart").oninput = document.getElementById("rEnd").oninput = updateRangeCap;
+function updateRangeCap(){
+  const rs = document.getElementById("rStart"), re = document.getElementById("rEnd");
+  // keep the two handles from crossing (start always left of end, min 1% apart)
+  let s = Number(rs.value), e = Number(re.value);
+  if(s > e - 1){
+    if(this === re){ e = Math.min(100, s + 1); re.value = e; }
+    else { s = Math.max(0, e - 1); rs.value = s; }
+  }
+  // orange fill between the two handles
+  const fill = document.getElementById("rangeFill");
+  fill.style.left = s + "%";
+  fill.style.width = (e - s) + "%";
+  if(!pcm) return;
+  const dur = pcm.length / sr;
+  const a = s/100*dur, b = e/100*dur;
+  document.getElementById("rangeCap").textContent = "This part goes to the model: " + a.toFixed(1) + " – " + b.toFixed(1) + " s (" + (b-a).toFixed(1) + " s)";
+}
+updateRangeCap();
+
+document.getElementById("clearBtn").onclick = () => {
+  pcm = null; document.getElementById("loadedBox").classList.add("hidden");
+  // show the input tabs again, back on the Samples tab
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("hidden","on"));
+  document.querySelector('[data-tab="samples"]').classList.add("on");
+  document.querySelectorAll(".panel").forEach(p => p.classList.add("hidden"));
+  document.getElementById("tab-samples").classList.remove("hidden");
+  // reset the custom sample dropdown
+  chosenSample = "";
+  document.getElementById("sampleLabel").textContent = "Pick a sample…";
+  buildSampleSelect();
+  document.getElementById("resultBox").innerHTML = '<p class="placeholder" style="margin-top:10px;">Load a sound and a model on the left, then press Analyse.</p>';
+};
+
+// ===================== MODEL BUTTONS =====================
+function buildModelButtons(){
+  const box = document.getElementById("models"); box.innerHTML = "";
+  models.forEach(m => {
+    const d = document.createElement("div");
+    d.className = "mbtn" + (m===chosenModel ? " on" : "");
+    d.innerHTML = (MASCOTS[m] ? '<img src="'+MASCOTS[m]+'">' : '') + '<b>' + (NICE[m]||m) + '</b>';
+    d.onclick = () => { chosenModel = m; buildModelButtons(); };
+    box.appendChild(d);
+  });
+}
+
+// ===================== WAV ENCODE + ANALYSE =====================
+function selectedPcm(){
+  const dur = pcm.length;
+  let a = Math.floor(document.getElementById("rStart").value/100*dur);
+  let b = Math.floor(document.getElementById("rEnd").value/100*dur);
+  if(a>b){ const t=a; a=b; b=t; }
+  if(b-a < sr*0.3){ a=0; b=dur; }  // too short -> whole clip
+  return pcm.subarray(a,b);
+}
+function encodeWav(float32, rate){
+  const n = float32.length; const buf = new ArrayBuffer(44 + n*2); const v = new DataView(buf);
+  const wr = (o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+  wr(0,"RIFF"); v.setUint32(4, 36+n*2, true); wr(8,"WAVE"); wr(12,"fmt "); v.setUint32(16,16,true);
+  v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,rate,true); v.setUint32(28,rate*2,true);
+  v.setUint16(32,2,true); v.setUint16(34,16,true); wr(36,"data"); v.setUint32(40,n*2,true);
+  let o=44; for(let i=0;i<n;i++){ let s=Math.max(-1,Math.min(1,float32[i])); v.setInt16(o, s<0?s*0x8000:s*0x7FFF, true); o+=2; }
+  return new Blob([buf], {type:"audio/wav"});
+}
+
+document.getElementById("analyseBtn").onclick = async function(){
+  if(!pcm || !chosenModel) return;
+  const rb = document.getElementById("resultBox");
+  rb.innerHTML = '<p class="placeholder" style="margin-top:10px;">'+(NICE[chosenModel]||chosenModel)+' is listening…</p>';
+  const wav = encodeWav(selectedPcm(), sr);
+  const fd = new FormData(); fd.append("file", wav, "snippet.wav");
+  try{
+    const r = await fetch(API_URL + "/predict?model=" + encodeURIComponent(chosenModel), {method:"POST", body:fd});
+    if(!r.ok){ rb.innerHTML = '<p class="warn">The API answered '+r.status+'.</p>'; return; }
+    renderResult(await r.json());
+  }catch(e){
+    rb.innerHTML = '<p class="warn">Could not reach the API. '+e.message+'</p>';
+  }
+};
+
+function renderResult(res){
+  const probs = res.probs; const label = res.label; const model = res.model;
+  // axis header: 0 / 50 / 100% scale sitting over the bars
+  let rows = '<div></div><div class="axis"><span>0</span><span>50</span><span>100%</span></div><div></div>';
+  LABELS.forEach(m => {
+    const v = probs[m] || 0;
+    const pct = Math.round(v*100);
+    const top = (m===label) ? ' top' : '';
+    rows += '<div class="ml'+top+'">'+m+'</div>'
+          + '<div class="trk"><div class="f" data-w="'+(v*100)+'"></div></div>'
+          + '<div class="pv'+top+'">'+pct+'%</div>';
+  });
+  const catPct = (res.cat_score!=null) ? Math.round(res.cat_score*100)+'%' : '–';
+  const topLine = res.is_cat
+    ? '<div class="big">'+label+'</div><div class="conf">'+Math.round((probs[label]||0)*100)+'% confident · model: '+(NICE[model]||model)+'</div>'
+    : '<div class="big">not a cat?</div><div class="conf">model: '+(NICE[model]||model)+'</div>';
+  const catChip = '<div class="catscore">Is a cat: '+catPct+'</div>';
+  const warn = (!res.is_cat) ? '<div class="warn">This does not sound like a cat. The mood below is what the model would guess anyway.</div>' : '';
+  document.getElementById("resultBox").innerHTML =
+    '<div class="verdict">Your cat is</div>'+topLine+catChip+'<div class="brow">'+rows+'</div>'+warn;
+  // animate bars
+  requestAnimationFrame(()=>document.querySelectorAll("#resultBox .f").forEach(f=>f.style.width=f.dataset.w+"%"));
+}
+
+// ===================== navigation between views =====================
+function showView(v){
+  document.getElementById("view-tool").classList.toggle("hidden", v !== "tool");
+  document.getElementById("view-analysis").classList.toggle("hidden", v !== "analysis");
+  document.getElementById("view-legal").classList.toggle("hidden", v !== "legal");
+  // nav pills only reflect tool/analysis; legal has no pill
+  document.querySelectorAll(".navb").forEach(x => x.classList.toggle("on", x.dataset.view === v));
+  if(v === "analysis"){ drawSpectrogram(); }
+  window.scrollTo(0, 0);
+}
+let cameFromSplash = false;
+document.querySelectorAll(".navb").forEach(nb => nb.onclick = () => showView(nb.dataset.view));
+document.getElementById("legalBack").onclick = () => {
+  if(cameFromSplash){
+    cameFromSplash = false;
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("splash").classList.remove("hidden");
+  } else {
+    showView("tool");
+  }
+};
+document.getElementById("linkImpressum").onclick = (e) => { e.preventDefault(); showView("legal"); document.getElementById("impressum").scrollIntoView(); };
+document.getElementById("linkDatenschutz").onclick = (e) => { e.preventDefault(); showView("legal"); document.getElementById("datenschutz").scrollIntoView(); };
+// legal reachable straight from the splash / title screen
+function openLegalFromSplash(anchor){
+  cameFromSplash = true;
+  document.getElementById("splash").classList.add("hidden");
+  document.getElementById("loading").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  showView("legal");
+  const el = document.getElementById(anchor); if(el) el.scrollIntoView();
+}
+document.getElementById("splashImpressum").onclick = (e) => { e.preventDefault(); openLegalFromSplash("impressum"); };
+document.getElementById("splashDatenschutz").onclick = (e) => { e.preventDefault(); openLegalFromSplash("datenschutz"); };
+
+// ===================== DEEP DIVE: mel spectrogram =====================
+// in-place iterative FFT (Cooley-Tukey), length must be a power of two
+function fft(re, im){
+  const n = re.length;
+  for(let i=1, j=0; i<n; i++){
+    let bit = n >> 1;
+    for(; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if(i < j){ let tr=re[i]; re[i]=re[j]; re[j]=tr; let ti=im[i]; im[i]=im[j]; im[j]=ti; }
+  }
+  for(let len=2; len<=n; len<<=1){
+    const ang = -2*Math.PI/len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for(let i=0; i<n; i+=len){
+      let cr=1, ci=0;
+      for(let k=0; k<len/2; k++){
+        const a=i+k, b=i+k+len/2;
+        const tr = re[b]*cr - im[b]*ci, ti = re[b]*ci + im[b]*cr;
+        re[b]=re[a]-tr; im[b]=im[a]-ti; re[a]+=tr; im[a]+=ti;
+        const ncr = cr*wr - ci*wi; ci = cr*wi + ci*wr; cr = ncr;
+      }
+    }
+  }
+}
+function hzToMel(f){ return 2595*Math.log10(1+f/700); }
+function melToHz(m){ return 700*(Math.pow(10, m/2595)-1); }
+function melFilterbank(nMels, nFft, sr, fmin, fmax){
+  const nBins = nFft/2 + 1;
+  const mmin = hzToMel(fmin), mmax = hzToMel(fmax);
+  const pts = [];
+  for(let i=0;i<nMels+2;i++) pts.push(melToHz(mmin + (mmax-mmin)*i/(nMels+1)));
+  const filters = [];
+  for(let m=1;m<=nMels;m++){
+    const f0=pts[m-1], f1=pts[m], f2=pts[m+1];
+    const filt = new Float32Array(nBins);
+    for(let b=0;b<nBins;b++){
+      const f = b*sr/nFft;
+      let w=0;
+      if(f>=f0 && f<=f1) w = (f-f0)/(f1-f0+1e-9);
+      else if(f>f1 && f<=f2) w = (f2-f)/(f2-f1+1e-9);
+      filt[b] = w>0 ? w : 0;
+    }
+    filters.push(filt);
+  }
+  return filters;
+}
+function melSpectrogram(signal, sr){
+  const nFft = 1024, hop = 512, nMels = 96;
+  const fmax = Math.min(8000, sr/2), fmin = 0;
+  const win = new Float32Array(nFft);
+  for(let i=0;i<nFft;i++) win[i] = 0.5 - 0.5*Math.cos(2*Math.PI*i/(nFft-1));
+  const nFrames = Math.max(1, 1 + Math.floor((signal.length - nFft)/hop));
+  const nBins = nFft/2 + 1;
+  const fb = melFilterbank(nMels, nFft, sr, fmin, fmax);
+  const spec = []; let gmin = Infinity, gmax = -Infinity;
+  const re = new Float32Array(nFft), im = new Float32Array(nFft);
+  for(let t=0;t<nFrames;t++){
+    const off = t*hop;
+    for(let i=0;i<nFft;i++){ re[i] = (signal[off+i]||0)*win[i]; im[i]=0; }
+    fft(re, im);
+    const power = new Float32Array(nBins);
+    for(let b=0;b<nBins;b++) power[b] = re[b]*re[b] + im[b]*im[b];
+    const mel = new Float32Array(nMels);
+    for(let m=0;m<nMels;m++){
+      let s=0; const f = fb[m];
+      for(let b=0;b<nBins;b++) s += f[b]*power[b];
+      const db = 10*Math.log10(s + 1e-10);
+      mel[m]=db; if(db<gmin)gmin=db; if(db>gmax)gmax=db;
+    }
+    spec.push(mel);
+  }
+  return {spec, nFrames, nMels, gmin, gmax, fmin, fmax};
+}
+// magma-ish colormap
+const MAGMA = [[0,0,4],[28,16,68],[79,18,123],[129,37,129],[181,54,122],[229,80,100],[251,135,97],[254,194,135],[252,253,191]];
+function cmap(t){
+  t = t<0?0:(t>1?1:t);
+  const x = t*(MAGMA.length-1), i = Math.floor(x), f = x-i;
+  const a = MAGMA[i], b = MAGMA[Math.min(i+1,MAGMA.length-1)];
+  return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f];
+}
+function drawSpectrogram(){
+  const cv = document.getElementById("spec"); const ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle = "#160a1f"; ctx.fillRect(0,0,W,H);
+  const hint = document.getElementById("specHint");
+  if(!pcm){
+    hint.style.display = "";
+    ctx.fillStyle = "#8a6ba0"; ctx.font = "16px Fredoka, sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("No sound loaded yet.", W/2, H/2); ctx.textAlign = "left";
+    return;
+  }
+  hint.style.display = "none";
+  const S = melSpectrogram(pcm, sr);
+  const top = S.gmax, floor = top - 80;               // 80 dB dynamic range
+  const offc = document.createElement("canvas"); offc.width = S.nFrames; offc.height = S.nMels;
+  const octx = offc.getContext("2d"); const img = octx.createImageData(S.nFrames, S.nMels);
+  for(let t=0;t<S.nFrames;t++){
+    for(let m=0;m<S.nMels;m++){
+      const v = (S.spec[t][m]-floor)/(top-floor+1e-9);
+      const c = cmap(v);
+      const y = S.nMels-1-m;                            // low freq at the bottom
+      const idx = (y*S.nFrames + t)*4;
+      img.data[idx]=c[0]; img.data[idx+1]=c[1]; img.data[idx+2]=c[2]; img.data[idx+3]=255;
+    }
+  }
+  octx.putImageData(img,0,0);
+  const ml=52, mb=34, mt=12, mr=76;
+  const pw = W-ml-mr, ph = H-mt-mb;
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(offc, ml, mt, pw, ph);
+  ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 1;
+  ctx.strokeRect(ml, mt, pw, ph);
+  ctx.fillStyle = "#e9d4f2"; ctx.font = "12px Fredoka, sans-serif";
+  // time axis
+  const dur = pcm.length/sr, nX = 6;
+  ctx.textAlign = "center";
+  for(let i=0;i<=nX;i++){
+    const x = ml + pw*i/nX;
+    ctx.strokeStyle = "rgba(255,255,255,.15)"; ctx.beginPath(); ctx.moveTo(x, mt+ph); ctx.lineTo(x, mt+ph+4); ctx.stroke();
+    ctx.fillText((dur*i/nX).toFixed(1)+"s", x, mt+ph+18);
+  }
+  ctx.fillText("time", ml+pw/2, H-2);
+  // frequency axis (mel-spaced ticks, labelled in Hz/kHz)
+  ctx.textAlign = "right";
+  const freqs = [0,500,1000,2000,4000,8000].filter(f => f <= S.fmax);
+  const mmax = hzToMel(S.fmax), mmin = hzToMel(S.fmin);
+  for(const f of freqs){
+    const frac = (hzToMel(f)-mmin)/(mmax-mmin);
+    const y = mt + ph*(1-frac);
+    ctx.strokeStyle = "rgba(255,255,255,.15)"; ctx.beginPath(); ctx.moveTo(ml-4, y); ctx.lineTo(ml, y); ctx.stroke();
+    ctx.fillText(f>=1000 ? (f/1000)+"k" : f, ml-7, y+4);
+  }
+  ctx.save(); ctx.translate(12, mt+ph/2); ctx.rotate(-Math.PI/2); ctx.textAlign="center";
+  ctx.fillText("frequency (mel)", 0, 0); ctx.restore();
+  // colour legend (dB)
+  const cbx = W-mr+18, cbw = 14;
+  for(let i=0;i<ph;i++){ const c = cmap(1-i/ph); ctx.fillStyle = "rgb("+(c[0]|0)+","+(c[1]|0)+","+(c[2]|0)+")"; ctx.fillRect(cbx, mt+i, cbw, 1); }
+  ctx.strokeStyle="rgba(255,255,255,.25)"; ctx.strokeRect(cbx, mt, cbw, ph);
+  ctx.fillStyle="#e9d4f2"; ctx.textAlign="left";
+  ctx.fillText("0 dB", cbx+cbw+4, mt+8);
+  ctx.fillText("-80", cbx+cbw+4, mt+ph);
+  ctx.textAlign="left";
+}
+
+// ===================== DEEP DIVE: compare all models =====================
+document.getElementById("cmpBtn").onclick = async function(){
+  if(!pcm){ document.getElementById("cmpBox").innerHTML = '<p class="ap">Load a sound on <b>The tool</b> first.</p>'; return; }
+  const box = document.getElementById("cmpBox");
+  const list = (models && models.length) ? models : ["panns","ast","cnn"];
+  box.innerHTML = '<p class="ap">Asking ' + list.length + ' models…</p>';
+  const wav = encodeWav(selectedPcm(), sr);
+  let html = "";
+  for(const m of list){
+    try{
+      const fd = new FormData(); fd.append("file", wav, "snippet.wav");
+      const r = await fetch(API_URL + "/predict?model=" + encodeURIComponent(m), {method:"POST", body:fd});
+      const res = await r.json();
+      const conf = Math.round((res.probs[res.label]||0)*100);
+      const cat = (res.cat_score!=null) ? Math.round(res.cat_score*100)+"%" : "–";
+      html += '<div class="cmpcol">'
+        + (MASCOTS[m] ? '<img src="'+MASCOTS[m]+'">' : '')
+        + '<div class="cm">'+(NICE[m]||m)+'</div>'
+        + '<div class="cl">'+(res.is_cat?res.label:"not a cat?")+'</div>'
+        + '<div class="cc">'+conf+'% · cat '+cat+'</div>';
+      // top-3 mini bars
+      const ranked = LABELS.map(l => [l, res.probs[l]||0]).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      ranked.forEach(([l,v]) => {
+        html += '<div class="cbl"><span>'+l+'</span><span>'+Math.round(v*100)+'%</span></div>'
+              + '<div class="cbar"><i style="width:'+(v*100)+'%"></i></div>';
+      });
+      html += '</div>';
+    }catch(e){
+      html += '<div class="cmpcol"><div class="cm">'+(NICE[m]||m)+'</div><p class="ap small">failed</p></div>';
+    }
+  }
+  box.innerHTML = html;
+};
+
+// ---------- custom audio player (brand look) ----------
+function fmtTime(s){
+  if(!s || !isFinite(s)) return "0:00";
+  const m = Math.floor(s/60); const r = Math.floor(s%60);
+  return m + ":" + (r<10?"0":"") + r;
+}
+const player = document.getElementById("player");
+const pbtn = document.getElementById("pbtn");
+pbtn.onclick = function(){
+  // stop the snippet preview if it is running, so the two don't overlap
+  stopSelection();
+  if(player.paused){ player.play(); } else { player.pause(); }
+};
+player.onplay = function(){ pbtn.textContent = "❚❚"; };
+player.onpause = function(){ pbtn.textContent = "▶"; };
+player.onended = function(){ pbtn.textContent = "▶"; };
+player.ontimeupdate = function(){
+  const d = player.duration || 0;
+  document.getElementById("pfill").style.width = (d ? (player.currentTime/d*100) : 0) + "%";
+  document.getElementById("ptime").textContent = fmtTime(player.currentTime);
+};
+player.onloadedmetadata = function(){
+  document.getElementById("pdur").textContent = fmtTime(player.duration);
+};
+// click the bar to seek
+document.getElementById("pbar").onclick = function(e){
+  const r = this.getBoundingClientRect();
+  const frac = (e.clientX - r.left) / r.width;
+  if(player.duration) player.currentTime = frac * player.duration;
+};
+
+// ---------- play only the selected snippet ----------
+let selSource = null;
+function stopSelection(){
+  if(selSource){ try{ selSource.stop(); }catch(e){} selSource = null; }
+  const b = document.getElementById("playSel"); if(b) b.textContent = "▶ Play selection";
+}
+document.getElementById("playSel").onclick = function(){
+  if(!pcm) return;
+  if(selSource){ stopSelection(); return; }   // acts as stop while playing
+  player.pause();                             // don't overlap with the main player
+  if(ac.state === "suspended") ac.resume();
+  const slice = selectedPcm();
+  const buf = ac.createBuffer(1, slice.length, sr);
+  buf.copyToChannel(Float32Array.from(slice), 0);
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.connect(ac.destination);
+  const btn = this;
+  src.onended = function(){ selSource = null; btn.textContent = "▶ Play selection"; };
+  src.start(); selSource = src; btn.textContent = "■ Stop";
+};
+
+// ===================== DEEP DIVE: the nerdy explainer =====================
+function buildExplain(){
+  const L = "assets/lion.png?v=2", R = "assets/robot.png?v=2", C = "assets/sleeping.png?v=2";
+  document.getElementById("explain").innerHTML =
+  '<h2>How this actually works <span class="tag">the nerdy bit</span></h2>'
+  + '<p class="lead">Kitty3000 turns a cat sound into one of ten moods. Underneath, that is three separate machine-learning models arguing over a picture of the sound. Here is the whole pipeline, honestly — including where it is fragile.</p>'
+
+  + '<h3>1 · From air to a picture</h3>'
+  + '<p>A microphone gives us a <b>waveform</b> — air pressure over time, tens of thousands of numbers per second. Raw, that is almost useless to a classifier. So we compute a <b>mel spectrogram</b> (the coloured image above): slide a short window across the signal, run an <code>FFT</code> on each window to see which frequencies are present, then squeeze those frequencies onto the <b>mel scale</b> — fine resolution low, coarse high, the way an ear actually resolves pitch. We cap at <code>fmax = 8000&nbsp;Hz</code> because that is where cat calls live; everything above is mostly noise and hiss. The result is a time × frequency image, and the whole problem becomes: <b>read this image</b>.</p>'
+
+  + '<h3>2 · Three brains, three ways of reading it</h3>'
+  + '<div class="grid3">'
+    + '<div class="mcard"><h4><img src="'+L+'">PANNs</h4>'
+      + '<p>A CNN <b>pretrained on AudioSet</b> — ~5,800 hours of everyday audio, 527 sound classes (including <i>Meow, Purr, Hiss</i>).</p>'
+      + '<p class="pro">+ huge general "ear", robust, and it powers the <b>is-it-a-cat</b> gate for free.</p>'
+      + '<p class="con">– knows cats, not moods; needs 32&nbsp;kHz input.</p></div>'
+    + '<div class="mcard"><h4><img src="'+R+'">AST</h4>'
+      + '<p>An <b>Audio Spectrogram Transformer</b> — cuts the spectrogram into patches and uses attention to relate them. Strongest pretrained backbone (AudioSet mAP 0.485 vs 0.431).</p>'
+      + '<p class="pro">+ highest expected accuracy, captures global patterns.</p>'
+      + '<p class="con">– biggest, slowest, worst cold-start.</p></div>'
+    + '<div class="mcard"><h4><img src="'+C+'">CNN</h4>'
+      + '<p>Our <b>own</b> CNN, trained from scratch on just the cat data for exactly these 10 moods (val macro-F1 ≈ 0.85).</p>'
+      + '<p class="pro">+ purpose-built, small, fast, sharp on clean clips.</p>'
+      + '<p class="con">– learned from ~3 hours; brittle outside its training world.</p></div>'
+  + '</div>'
+  + '<div class="box"><p>The two pretrained models are used <b>frozen</b>: we never retrain them. Each turns a clip into a fixed feature vector, and a tiny <b>logistic regression</b> (a few thousand weights, trains in seconds) maps that vector to the 10 moods. Fine-tuning 87&nbsp;million parameters on 2,400 clips is mostly a fast route to memorising the fridge hum behind cat #17 — so we don\'t.</p></div>'
+
+  + '<h3>3 · Why pretraining is the whole game</h3>'
+  + '<p>We have roughly <b>3 hours</b> of labelled cat audio. AudioSet is <b>~5,800 hours</b>. A model trained from scratch has to learn <i>what sound even is</i> from those 3 hours; a pretrained encoder already knows that and only has to learn what separates "annoyed" from "wants food". That single ratio — 3 vs 5,800 — is why the pretrained branches start ~10 points ahead, and why our own CNN, impressive as it is, has the steepest hill to climb.</p>'
+
+  + '<h3>4 · The hard part isn\'t the model — it\'s the labels</h3>'
+  + '<p>There is no objective truth for a cat\'s mood. Every training label was a <b>human</b> deciding that <i>this</i> meow means "Mating" and <i>that</i> one means "Warning". People disagree — the boundary between <code>Warning</code>, <code>Defence</code> and <code>Fighting</code> is genuinely blurry, and two annotators will split the same clip differently. So the model isn\'t learning "the truth"; it is learning to <b>reproduce a panel of humans</b>, disagreements and all. A ceiling of maybe 85% isn\'t the model failing — it is often the label noise showing through.</p>'
+
+  + '<h3>5 · Data traps we had to dodge</h3>'
+  + '<ul>'
+    + '<li><b>Leakage.</b> The clips come from YouTube videos, several per cat, and we cut each into overlapping windows. A naive random split puts the <i>same recording</i> in train and test — the model recognises the cat, not the mood, and the score looks amazing. We split by <code>source_file_id</code> (grouped CV) so a cat is never on both sides. This is why we report ~88%, not the source paper\'s 91%.</li>'
+    + '<li><b>Class imbalance & short clips.</b> Some moods are rare; some calls are a fraction of a second. Both push the model toward guessing the common classes.</li>'
+    + '<li><b>Domain gap.</b> AudioSet was recorded in a different world than our clips — different mics, rooms, compression. The features transfer, but not perfectly.</li>'
+  + '</ul>'
+
+  + '<h3>6 · What it can and can\'t do</h3>'
+  + '<p>It can give a fast, reasoned guess with a confidence number and flag non-cats. It <b>cannot</b> tell you what a cat "really feels", handle a mood it never saw, or promise that 60% confident means 60% correct — confidence is calibrated loosely at best. The honest framing for the three models is <b>not a leaderboard</b>: with 300 clips per class and fold-to-fold swings of 2–4 points, we usually can\'t prove one is truly better. Three independent readings of the same sound is the feature — not a winner.</p>';
+}
+
+// init
+buildSampleSelect();
+buildExplain();
+</script>
+</body>
+</html>

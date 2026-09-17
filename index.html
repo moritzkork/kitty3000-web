@@ -36,7 +36,18 @@ button{font-family:inherit; cursor:pointer;}
 .splash-foot .hrt{color:var(--orange);}
 .splash-foot .sfl{display:block; margin-top:3px;}
 
+/* MK: analyse stepper — shows the real processing stages while the API works */
+.stepper{list-style:none; margin:14px auto 4px; padding:0; display:flex; flex-direction:column; gap:12px; text-align:left; max-width:300px;}
+.stepper .step{display:flex; align-items:center; gap:12px; font-size:16px; font-weight:600; color:#c9a9dc; opacity:.5; transition:opacity .25s, color .25s;}
+.stepper .step .dot{width:20px; height:20px; border-radius:999px; border:2px solid currentColor; flex:none; position:relative; box-sizing:border-box;}
+.stepper .step.active{opacity:1; color:var(--orange);}
+.stepper .step.active .dot{animation:stepPulse 1s ease-in-out infinite;}
+.stepper .step.done{opacity:1; color:#8fd39a;}
+.stepper .step.done .dot{background:#8fd39a; border-color:#8fd39a;}
+.stepper .step.done .dot::after{content:""; position:absolute; left:6px; top:2px; width:5px; height:10px; border:solid #1b0a26; border-width:0 2px 2px 0; transform:rotate(45deg);}
+@keyframes stepPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,130,31,.5);}50%{box-shadow:0 0 0 7px rgba(245,130,31,0);}}
 /* ---------- loading ---------- */
+
 #loading{position:fixed; inset:0; z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; text-align:center; padding:40px;
   background:radial-gradient(circle at 50% 18%, #6f1a86, var(--purple) 55%, var(--purple2));}
 #loading .wm{font-weight:700; font-size:56px; color:var(--orange); -webkit-text-stroke:3px #fff; text-shadow:0 6px 0 rgba(0,0,0,.18);}
@@ -66,6 +77,7 @@ button{font-family:inherit; cursor:pointer;}
 .panel{margin-top:0;}
 .drop{display:block; margin-top:2px; border:2px dashed rgba(255,255,255,.3); border-radius:16px; padding:40px 22px; text-align:center; color:#e9d4f2; font-size:16px; background:rgba(255,255,255,.05); cursor:pointer; transition:background .15s, border-color .15s;}
 .drop:hover{background:rgba(245,130,31,.10); border-color:var(--orange); color:#fff;}
+.drop.over{background:rgba(245,130,31,.16); border-color:var(--orange); color:#fff;}
 .drop .di{display:block; font-size:34px; margin-bottom:8px; opacity:.9;}
 .sel{width:100%; padding:13px 15px; border-radius:12px; background:#fff; color:var(--purple2); font-weight:600; font-size:16px; border:none;}
 /* custom dropdown (native <select> option lists can't be themed) */
@@ -73,12 +85,27 @@ button{font-family:inherit; cursor:pointer;}
 .dd-btn{width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-radius:12px; background:#fff; color:var(--purple2); font-weight:600; font-size:16px; border:none; cursor:pointer; font-family:inherit; text-align:left;}
 .dd-arrow{color:var(--purple); font-size:14px; transition:transform .15s;}
 .dd.open .dd-arrow{transform:rotate(180deg);}
-.dd-list{position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:30; background:var(--purple2); border:1px solid rgba(255,255,255,.18); border-radius:14px; padding:6px; box-shadow:0 16px 40px rgba(0,0,0,.45); max-height:300px; overflow-y:auto;}
+.dd-list{position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:30; background:var(--purple2); border:1px solid rgba(255,255,255,.18); border-radius:14px; padding:6px; box-shadow:0 16px 40px rgba(0,0,0,.45); max-height:440px; overflow-y:auto;}
 .dd-item{padding:12px 14px; border-radius:10px; color:#f3d9ff; font-weight:600; cursor:pointer;}
 .dd-item:hover{background:rgba(245,130,31,.18); color:#fff;}
 .dd-item.on{background:var(--orange); color:var(--purple2);}
+.dd-div{padding:8px 12px 4px; font-size:11px; color:#c9a9dc; text-transform:uppercase; letter-spacing:.05em; opacity:.75;}
+.surprise{width:100%; margin-top:10px; padding:12px; border-radius:12px; border:1px dashed rgba(255,255,255,.35); background:rgba(255,255,255,.06); color:#fff; font-weight:600; font-size:15px; cursor:pointer; font-family:inherit;}
+.surprise:hover{background:rgba(245,130,31,.14); border-color:var(--orange); color:#fff;}
+.gt{display:inline-block; margin:0 0 16px 8px; padding:4px 12px; border-radius:999px; font-size:14px; font-weight:700;}
+.gt.ok{background:rgba(143,211,154,.22); color:#8fd39a;}
+.gt.no{background:rgba(255,140,140,.18); color:#ff9d9d;}
+/* MK: compact stepper used inside the deep-dive compare columns */
+.stepper.mini{margin:10px auto 0; max-width:none; gap:8px; text-align:left;}
+.stepper.mini .step{font-size:12.5px; gap:9px;}
+.stepper.mini .step .dot{width:14px; height:14px;}
+.stepper.mini .step.done .dot::after{left:4px; top:1px; width:3px; height:7px; border-width:0 2px 2px 0;}
+/* MK: "Loaded: ..." caption with a small change-sound link on the right (replaces the big clear button) */
+.loaded-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:2px 0 8px;}
+.linkbtn{background:none; border:none; color:var(--orange); font-weight:600; font-size:13px; cursor:pointer; padding:6px 8px; font-family:inherit; white-space:nowrap; border-radius:8px;}
+.linkbtn:hover{background:rgba(245,130,31,.14);}
 .btn-lite{background:rgba(255,255,255,.12); border:none; color:#fff; padding:12px 18px; border-radius:12px; font-weight:600; font-size:16px;}
-.loaded-cap{color:#e9d4f2; font-size:14px; margin:2px 0 8px;}
+.loaded-cap{color:#e9d4f2; font-size:14px; margin:0;}
 audio{display:none;}
 /* custom audio player in the brand look */
 .player{display:flex; align-items:center; gap:12px; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.16); border-radius:14px; padding:10px 14px; margin:8px 0;}
@@ -144,6 +171,7 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 .nav{display:flex; gap:10px; margin-bottom:18px;}
 .navb{padding:11px 20px; border-radius:14px; font-weight:600; font-size:16px; font-family:inherit; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; cursor:pointer;}
 .navb.on{background:var(--orange); color:var(--purple2); border-color:var(--orange);}
+.navb[data-view="tool"]::before{content:""; display:inline-block; width:15px; height:15px; margin-right:7px; vertical-align:-2px; background-color:currentColor; -webkit-mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'><ellipse cx='6' cy='9' rx='2.2' ry='3'/><ellipse cx='11' cy='6.4' rx='2.2' ry='3.2'/><ellipse cx='16' cy='7.4' rx='2.2' ry='3'/><ellipse cx='20' cy='11' rx='2' ry='2.6'/><path d='M12 12c-3 0-6 2.4-6 5.2 0 2 1.7 3 3.3 2.4 1.7-.7 3.7-.7 5.4 0 1.6.6 3.3-.4 3.3-2.4 0-2.8-3-5.2-6-5.2z'/></svg>") no-repeat center/contain; mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'><ellipse cx='6' cy='9' rx='2.2' ry='3'/><ellipse cx='11' cy='6.4' rx='2.2' ry='3.2'/><ellipse cx='16' cy='7.4' rx='2.2' ry='3'/><ellipse cx='20' cy='11' rx='2' ry='2.6'/><path d='M12 12c-3 0-6 2.4-6 5.2 0 2 1.7 3 3.3 2.4 1.7-.7 3.7-.7 5.4 0 1.6.6 3.3-.4 3.3-2.4 0-2.8-3-5.2-6-5.2z'/></svg>") no-repeat center/contain;}
 #view-analysis{max-width:940px; margin:0 auto;}
 .acard{margin-bottom:22px;}
 .ah{color:#f3d9ff; font-size:24px; margin:0 0 6px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
@@ -171,7 +199,7 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 .nerd .lead{font-size:16px;}
 .nerd ul{margin:8px 0 8px 2px; padding:0; list-style:none;}
 .nerd li{color:#e9d4f2; font-size:15px; line-height:1.6; margin:7px 0; padding-left:22px; position:relative;}
-.nerd li::before{content:"🐾"; position:absolute; left:0; font-size:12px; top:3px;}
+.nerd li::before{content:""; position:absolute; left:0; top:4px; width:14px; height:14px; background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><ellipse cx='6' cy='9' rx='2.2' ry='3'/><ellipse cx='11' cy='6.4' rx='2.2' ry='3.2'/><ellipse cx='16' cy='7.4' rx='2.2' ry='3'/><ellipse cx='20' cy='11' rx='2' ry='2.6'/><path d='M12 12c-3 0-6 2.4-6 5.2 0 2 1.7 3 3.3 2.4 1.7-.7 3.7-.7 5.4 0 1.6.6 3.3-.4 3.3-2.4 0-2.8-3-5.2-6-5.2z'/></svg>") no-repeat center/contain;}
 .nerd .box{background:rgba(0,0,0,.18); border-left:3px solid var(--orange); border-radius:0 12px 12px 0; padding:12px 16px; margin:14px 0;}
 .nerd .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:12px 0;}
 @media(max-width:720px){.nerd .grid3{grid-template-columns:1fr;}}
@@ -180,6 +208,27 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 .nerd .mcard img{width:26px; height:26px; object-fit:contain; vertical-align:middle;}
 .nerd .mcard .pro{color:#9fe6b0;} .nerd .mcard .con{color:#f5b8a0;}
 .nerd .mcard p{font-size:13.5px; margin:5px 0;}
+.nerd .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:12px 0;}
+.nerd .stat{background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:14px 14px 12px; text-align:center;}
+.nerd .stat img{width:44px; height:44px; object-fit:contain;}
+.nerd .stat .n{font-size:34px; font-weight:700; color:var(--orange); line-height:1.05; margin-top:4px;}
+.nerd .stat .l{font-size:13px; color:#fff; font-weight:600;}
+.nerd .stat .s{font-size:12px; color:#c9a9dc; margin-top:2px;}
+.nerd .hb{display:grid; grid-template-columns:150px 1fr 52px; align-items:center; gap:10px; margin:6px 0; font-size:13.5px; color:#e9d4f2;}
+.nerd .hb .k{color:#fff; font-weight:600;}
+.nerd .hb .t{height:10px; background:rgba(255,255,255,.12); border-radius:6px; overflow:hidden;}
+.nerd .hb .t i{display:block; height:100%; background:linear-gradient(90deg,var(--orange),var(--orange2)); border-radius:6px;}
+.nerd .hb .t i.dim{background:rgba(255,255,255,.35);}
+.nerd .hb .v{text-align:right; color:#fff; font-variant-numeric:tabular-nums;}
+.nerd .hb.ref .t{background:none; border-top:2px dashed rgba(255,255,255,.35); height:0; border-radius:0;}
+.nerd table.tbl{width:100%; border-collapse:collapse; margin:10px 0 4px; font-size:13.5px;}
+.nerd table.tbl th{color:#c9a9dc; font-weight:600; text-align:left; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,.18); font-size:12.5px; letter-spacing:.02em;}
+.nerd table.tbl td{color:#e9d4f2; padding:7px 8px; border-bottom:1px solid rgba(255,255,255,.08); vertical-align:top;}
+.nerd table.tbl td.num, .nerd table.tbl th.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.nerd table.tbl td.hi{color:var(--orange); font-weight:700;}
+.nerd table.tbl tr.ours td{color:#fff;}
+.nerd .two{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:640px){ .nerd .stats,.nerd .two{grid-template-columns:1fr;} .nerd .hb{grid-template-columns:110px 1fr 46px;} }
 </style>
 </head>
 <body>
@@ -216,7 +265,7 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
   </div>
 
   <div class="nav">
-    <button class="navb on" data-view="tool">🐾 The tool</button>
+    <button class="navb on" data-view="tool">The tool</button>
     <button class="navb" data-view="analysis">🔬 Deep dive</button>
   </div>
 
@@ -235,6 +284,7 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
           <button class="dd-btn" id="sampleBtn"><span id="sampleLabel">Pick a sample…</span><span class="dd-arrow">▾</span></button>
           <div class="dd-list hidden" id="sampleList"></div>
         </div>
+        <button class="surprise" id="surpriseBtn">🎲 Surprise me — random real cat</button>
       </div>
       <div class="panel hidden" id="tab-upload">
         <label class="drop"><span class="di">🎵</span>Drop an mp3 / wav here, or click to choose
@@ -247,7 +297,7 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
       </div>
 
       <div id="loadedBox" class="hidden">
-        <div class="loaded-cap" id="loadedCap"></div>
+        <div class="loaded-row"><div class="loaded-cap" id="loadedCap"></div><button class="linkbtn" id="clearBtn">✕ change sound</button></div>
         <audio id="player"></audio>
         <div class="player">
           <button class="pbtn" id="pbtn" aria-label="Play">▶</button>
@@ -272,7 +322,6 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
         <div class="models" id="models"></div>
 
         <button class="analyse" id="analyseBtn">🐾 Analyse</button>
-        <button class="btn-lite" id="clearBtn" style="margin-top:10px; width:100%;">✕ Clear and load another sound</button>
       </div>
     </div>
 
@@ -286,9 +335,27 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
   <!-- ============ ANALYSIS / DEEP DIVE ============ -->
   <div id="view-analysis" class="hidden">
 
+    <div class="card acard" id="ddSound">
+      <h2 class="ah">Sound <span class="tag">everything below runs on this</span></h2>
+      <div id="ddEmpty">
+        <label class="drop" for="ddFile"><span class="di">🎵</span>Drop an mp3 / wav here, or click to choose</label>
+        <input type="file" id="ddFile" accept="audio/*" style="display:none">
+        <p class="ap small" style="margin-top:8px;">Or pick a sample on <b>The tool</b> — whatever is loaded there shows up here too.</p>
+      </div>
+      <div id="ddLoaded" class="hidden">
+        <div class="loaded-row"><div class="loaded-cap" id="ddCap"></div><button class="linkbtn" id="ddChange">✕ change sound</button></div>
+        <div class="player">
+          <button class="pbtn" id="ddPlay" aria-label="Play">▶</button>
+          <span class="ptime" id="ddTime">0:00</span>
+          <div class="pbar" id="ddBar"><div class="pfill" id="ddFill"></div></div>
+          <span class="ptime" id="ddDur">0:00</span>
+        </div>
+      </div>
+    </div>
+
     <div class="card acard">
       <h2 class="ah">Mel spectrogram <span class="tag">what the models actually see</span></h2>
-      <p class="ap" id="specHint">Load a sound on <b>The tool</b> first — then this shows its mel spectrogram.</p>
+      <p class="ap" id="specHint">Load a sound above — then this shows its mel spectrogram.</p>
       <canvas id="spec" width="920" height="360"></canvas>
       <p class="ap small">Time runs left→right, pitch bottom→top on the <b>mel</b> scale (spacing that matches how ears resolve pitch — fine low, coarse high). Colour is energy in decibels: dark = quiet, bright = loud. Frequencies are capped at 8&nbsp;kHz because that is where cat calls live and where the training config (<code>fmax=8000</code>) cuts off.</p>
     </div>
@@ -380,7 +447,16 @@ const SAMPLES = [
 // ===================== STATE =====================
 let models = [];
 let chosenModel = null;
+// MK: demo mode survives a page reload (localStorage) - so a reload on stage
+// never shows the real mood labels by accident. "?demo=1" / "?demo=0" in the
+// URL forces it and is remembered too.
+const DEMO_KEY = "k3_demo";
 let demoMode = false;
+try {
+  const q = new URLSearchParams(location.search).get("demo");
+  if (q === "1" || q === "0") localStorage.setItem(DEMO_KEY, q);
+  demoMode = localStorage.getItem(DEMO_KEY) === "1";
+} catch (e) {}
 let pcm = null;           // Float32Array mono of the loaded clip
 let sr = 32000;           // sample rate of the decoded clip
 let sourceName = "";      // display name (masked in demo mode)
@@ -407,7 +483,14 @@ async function enter(){
 
 // ===================== DEMO MODE =====================
 const demoSwitch = document.getElementById("demoSwitch");
-demoSwitch.onclick = () => { demoMode = !demoMode; demoSwitch.classList.toggle("on", demoMode); buildSampleSelect(); };
+demoSwitch.classList.toggle("on", demoMode);   // MK: show the restored state on the switch
+function setDemoMode(on){
+  demoMode = on;
+  demoSwitch.classList.toggle("on", demoMode);
+  try { localStorage.setItem(DEMO_KEY, demoMode ? "1" : "0"); } catch (e) {}
+  buildSampleSelect();
+}
+demoSwitch.onclick = () => setDemoMode(!demoMode);
 
 // ===================== TABS =====================
 document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
@@ -419,32 +502,117 @@ document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
 
 // ===================== SAMPLES (custom dropdown) =====================
 let chosenSample = "";   // file path of the picked sample, "" = none
+let currentTruth = null; // MK: true mood of the loaded clip, if it is a labelled test cat (else null)
+
+// MK: real test-set cats (never seen in training). hero = shown in the dropdown; the rest are
+// MK: only reachable via the Surprise-me button. m = ground-truth mood we reveal after the guess.
+const TEST_CATS = [
+  {f:"samples/ds_angry_1.mp3", m:"Angry", hero:true},
+  {f:"samples/ds_angry_2.mp3", m:"Angry", hero:false},
+  {f:"samples/ds_angry_3.mp3", m:"Angry", hero:false},
+  {f:"samples/ds_angry_4.mp3", m:"Angry", hero:false},
+  {f:"samples/ds_defence_1.mp3", m:"Defence", hero:true},
+  {f:"samples/ds_defence_2.mp3", m:"Defence", hero:false},
+  {f:"samples/ds_fighting_1.mp3", m:"Fighting", hero:true},
+  {f:"samples/ds_fighting_2.mp3", m:"Fighting", hero:false},
+  {f:"samples/ds_fighting_3.mp3", m:"Fighting", hero:false},
+  {f:"samples/ds_fighting_4.mp3", m:"Fighting", hero:false},
+  {f:"samples/ds_happy_1.mp3", m:"Happy", hero:true},
+  {f:"samples/ds_happy_2.mp3", m:"Happy", hero:false},
+  {f:"samples/ds_happy_3.mp3", m:"Happy", hero:false},
+  {f:"samples/ds_happy_4.mp3", m:"Happy", hero:false},
+  {f:"samples/ds_huntingmind_1.mp3", m:"HuntingMind", hero:true},
+  {f:"samples/ds_huntingmind_2.mp3", m:"HuntingMind", hero:false},
+  {f:"samples/ds_huntingmind_3.mp3", m:"HuntingMind", hero:false},
+  {f:"samples/ds_huntingmind_4.mp3", m:"HuntingMind", hero:false},
+  {f:"samples/ds_mating_1.mp3", m:"Mating", hero:true},
+  {f:"samples/ds_mating_2.mp3", m:"Mating", hero:false},
+  {f:"samples/ds_mating_3.mp3", m:"Mating", hero:false},
+  {f:"samples/ds_mating_4.mp3", m:"Mating", hero:false},
+  {f:"samples/ds_mothercall_1.mp3", m:"MotherCall", hero:true},
+  {f:"samples/ds_mothercall_2.mp3", m:"MotherCall", hero:false},
+  {f:"samples/ds_mothercall_3.mp3", m:"MotherCall", hero:false},
+  {f:"samples/ds_mothercall_4.mp3", m:"MotherCall", hero:false},
+  {f:"samples/ds_paining_1.mp3", m:"Paining", hero:true},
+  {f:"samples/ds_paining_2.mp3", m:"Paining", hero:false},
+  {f:"samples/ds_paining_3.mp3", m:"Paining", hero:false},
+  {f:"samples/ds_paining_4.mp3", m:"Paining", hero:false},
+  {f:"samples/ds_paining_5.mp3", m:"Paining", hero:true},   // MK: the Happy/Paining confusion clip for the demo - all three models say Happy
+  {f:"samples/ds_happy_5.mp3",   m:"Happy",   hero:false},  // MK: the mirror case - all three say Paining
+  {f:"samples/ds_resting_1.mp3", m:"Resting", hero:true},
+  {f:"samples/ds_resting_2.mp3", m:"Resting", hero:false},
+  {f:"samples/ds_resting_3.mp3", m:"Resting", hero:false},
+  {f:"samples/ds_warning_1.mp3", m:"Warning", hero:true},
+  {f:"samples/ds_warning_2.mp3", m:"Warning", hero:false},
+  {f:"samples/ds_warning_3.mp3", m:"Warning", hero:false},
+  {f:"samples/ds_warning_4.mp3", m:"Warning", hero:false},
+];
+
+// MK: load any sample (classic or test cat) and remember its ground truth (null clears it)
+async function loadSampleFile(file, name, truth){
+  const blob = await (await fetch(file)).blob();
+  await loadBlob(blob, name);   // MK: loadBlob resets currentTruth = null...
+  currentTruth = truth;          // MK: ...so we set the real ground truth right after
+}
+
 function buildSampleSelect(){
   const list = document.getElementById("sampleList");
   list.innerHTML = "";
+  // MK: the six classic sounds (same numbering as the vote app)
   SAMPLES.forEach(([n,file,real]) => {
     const it = document.createElement("div");
     it.className = "dd-item" + (file === chosenSample ? " on" : "");
     it.textContent = demoMode ? ("Sound " + n) : ("Sound " + n + " · " + real);
-    it.dataset.file = file;
-    it.dataset.masked = "Sound " + n;
-    it.dataset.real = "sample " + real;
     it.onclick = async () => {
       chosenSample = file;
       document.getElementById("sampleLabel").textContent = it.textContent;
       closeSampleDD();
-      const blob = await (await fetch(file)).blob();
-      await loadBlob(blob, demoMode ? it.dataset.masked : it.dataset.real);
+      await loadSampleFile(file, demoMode ? ("Sound " + n) : ("sample " + real), null);
+    };
+    list.appendChild(it);
+  });
+  // MK: a divider, then one real test cat per mood (hero). Ground truth is revealed after analysing.
+  const div = document.createElement("div");
+  div.className = "dd-div"; div.textContent = "— real test cats —";
+  list.appendChild(div);
+  TEST_CATS.filter(c => c.hero).forEach((c, i) => {
+    // MK: in demo mode the mood is hidden, but the number lets the presenter pick a specific cat
+    const label = demoMode ? ("Real cat " + (i + 1)) : ("Real cat " + (i + 1) + " · " + c.m);
+    const it = document.createElement("div");
+    it.className = "dd-item" + (c.f === chosenSample ? " on" : "");
+    it.textContent = label;
+    it.onclick = async () => {
+      chosenSample = c.f;
+      document.getElementById("sampleLabel").textContent = label;
+      closeSampleDD();
+      await loadSampleFile(c.f, demoMode ? label : ("real cat · " + c.m), c.m);
     };
     list.appendChild(it);
   });
   // keep the button label in sync with demo-mode relabeling
   if(chosenSample){
-    const cur = SAMPLES.find(s => s[1] === chosenSample);
-    if(cur) document.getElementById("sampleLabel").textContent =
-      demoMode ? ("Sound " + cur[0]) : ("Sound " + cur[0] + " · " + cur[2]);
+    const cl = SAMPLES.find(s => s[1] === chosenSample);
+    const tc = TEST_CATS.find(c => c.f === chosenSample);
+    if(cl) document.getElementById("sampleLabel").textContent =
+      demoMode ? ("Sound " + cl[0]) : ("Sound " + cl[0] + " · " + cl[2]);
+    else if(tc) document.getElementById("sampleLabel").textContent =
+      demoMode ? "Real cat" : ("Real cat · " + tc.m);
   }
 }
+
+// MK: Surprise me - pick a random clip from the WHOLE pool (classics + every test cat)
+document.getElementById("surpriseBtn").onclick = async () => {
+  const pool = SAMPLES.map(x => ({f:x[1], n:x[0], real:x[2], m:null}))
+                      .concat(TEST_CATS.map(c => ({f:c.f, n:null, real:null, m:c.m})));
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  chosenSample = pick.f;
+  const label = pick.n ? (demoMode ? ("Sound " + pick.n) : ("Sound " + pick.n + " · " + pick.real))
+                       : (demoMode ? "Real cat" : ("Real cat · " + pick.m));
+  document.getElementById("sampleLabel").textContent = label;
+  closeSampleDD();
+  await loadSampleFile(pick.f, demoMode ? (pick.n ? ("Sound " + pick.n) : "Real cat") : label, pick.m);
+  buildSampleSelect();
+};
 function openSampleDD(){ document.getElementById("sampleDD").classList.add("open"); document.getElementById("sampleList").classList.remove("hidden"); }
 function closeSampleDD(){ document.getElementById("sampleDD").classList.remove("open"); document.getElementById("sampleList").classList.add("hidden"); }
 document.getElementById("sampleBtn").onclick = (e) => {
@@ -485,6 +653,7 @@ document.getElementById("recBtn").onclick = async function(){
 
 // ===================== LOAD + DECODE =====================
 async function loadBlob(blob, name){
+  currentTruth = null;   // MK: uploads/recordings have no known ground truth; sample loads set it afterwards
   sourceName = name;
   const buf = await blob.arrayBuffer();
   let audio;
@@ -509,6 +678,7 @@ async function loadBlob(blob, name){
   document.getElementById("loadedBox").classList.remove("hidden");
   document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));
   document.querySelectorAll(".panel").forEach(p=>p.classList.add("hidden"));
+  refreshDeepDiveSound();   // MK: the deep-dive "Sound" card mirrors whatever is loaded
 }
 
 function drawWave(){
@@ -551,10 +721,11 @@ document.getElementById("clearBtn").onclick = () => {
   document.querySelectorAll(".panel").forEach(p => p.classList.add("hidden"));
   document.getElementById("tab-samples").classList.remove("hidden");
   // reset the custom sample dropdown
-  chosenSample = "";
+  chosenSample = ""; currentTruth = null;
   document.getElementById("sampleLabel").textContent = "Pick a sample…";
   buildSampleSelect();
   document.getElementById("resultBox").innerHTML = '<p class="placeholder" style="margin-top:10px;">Load a sound and a model on the left, then press Analyse.</p>';
+  refreshDeepDiveSound();
 };
 
 // ===================== MODEL BUTTONS =====================
@@ -588,19 +759,56 @@ function encodeWav(float32, rate){
   return new Blob([buf], {type:"audio/wav"});
 }
 
+// MK: a little stepper so the wait shows the real stages instead of a frozen "is listening".
+// MK: the API returns everything in ONE response, so the steps are client-timed:
+// MK: decode + cat-check advance on a timer, the model step holds until the real answer lands.
+function runStepper(rb, modelNice){
+  const steps = [
+    "Decoding your snippet",
+    "Checking whether it's a cat",
+    "Running the " + modelNice + " model",
+    "Reading the mood"
+  ];
+  rb.innerHTML = '<ul class="stepper">' + steps.map(function(s,i){
+    return '<li class="step" data-i="'+i+'"><span class="dot"></span><span class="lbl">'+s+'</span></li>';
+  }).join('') + '</ul>';
+  const els = rb.querySelectorAll(".step");
+  const timers = [];
+  function activate(i){
+    if(i>0 && els[i-1]){ els[i-1].classList.remove("active"); els[i-1].classList.add("done"); }
+    if(els[i]){ els[i].classList.add("active"); }
+  }
+  activate(0);
+  // MK: decode is quick, the cat-check (PANN) is the new cost, then we park on the model step.
+  timers.push(setTimeout(function(){ activate(1); }, 600));
+  timers.push(setTimeout(function(){ activate(2); }, 1700));
+  return {
+    done: function(){
+      timers.forEach(clearTimeout);
+      for(let i=0;i<3;i++){ els[i].classList.remove("active"); els[i].classList.add("done"); }
+      els[3].classList.add("active");
+    },
+    fail: function(){ timers.forEach(clearTimeout); }
+  };
+}
+
 document.getElementById("analyseBtn").onclick = async function(){
   if(!pcm || !chosenModel) return;
   const rb = document.getElementById("resultBox");
-  rb.innerHTML = '<p class="placeholder" style="margin-top:10px;">'+(NICE[chosenModel]||chosenModel)+' is listening…</p>';
+  const step = runStepper(rb, NICE[chosenModel]||chosenModel);
   // on mobile the result card stacks below the input — scroll to it so the user sees it load
   if(window.innerWidth <= 820){ rb.scrollIntoView({behavior:"smooth", block:"start"}); }
   const wav = encodeWav(selectedPcm(), sr);
   const fd = new FormData(); fd.append("file", wav, "snippet.wav");
   try{
     const r = await fetch(API_URL + "/predict?model=" + encodeURIComponent(chosenModel), {method:"POST", body:fd});
-    if(!r.ok){ rb.innerHTML = '<p class="warn">The API answered '+r.status+'.</p>'; return; }
-    renderResult(await r.json());
+    if(!r.ok){ step.fail(); rb.innerHTML = '<p class="warn">The API answered '+r.status+'.</p>'; return; }
+    const data = await r.json();
+    step.done();
+    // MK: tiny beat so the final "reading the mood" tick is visible before the result replaces it
+    setTimeout(function(){ renderResult(data); }, 260);
   }catch(e){
+    step.fail();
     rb.innerHTML = '<p class="warn">Could not reach the API. '+e.message+'</p>';
   }
 };
@@ -619,12 +827,13 @@ function renderResult(res){
   });
   const catPct = (res.cat_score!=null) ? Math.round(res.cat_score*100)+'%' : '–';
   const topLine = res.is_cat
-    ? '<div class="big">'+label+'</div><div class="conf">'+Math.round((probs[label]||0)*100)+'% confident · model: '+(NICE[model]||model)+'</div>'
+    ? '<div class="big">'+label+'</div><div class="conf">model score: '+Math.round((probs[label]||0)*100)+'% · '+(NICE[model]||model)+'</div>'
     : '<div class="big">not a cat?</div><div class="conf">model: '+(NICE[model]||model)+'</div>';
   const catChip = '<div class="catscore">Is a cat: '+catPct+'</div>';
+  const gtChip = currentTruth ? '<div class="gt '+((res.is_cat && res.label===currentTruth)?'ok':'no')+'">Ground truth: '+currentTruth+((res.is_cat && res.label===currentTruth)?' ✓':' ✗')+'</div>' : '';
   const warn = (!res.is_cat) ? '<div class="warn">This does not sound like a cat. The mood below is what the model would guess anyway.</div>' : '';
   document.getElementById("resultBox").innerHTML =
-    '<div class="verdict">Your cat is</div>'+topLine+catChip+'<div class="brow">'+rows+'</div>'+warn;
+    '<div class="verdict">Your cat is</div>'+topLine+catChip+gtChip+'<div class="brow">'+rows+'</div>'+warn;
   // animate bars
   requestAnimationFrame(()=>document.querySelectorAll("#resultBox .f").forEach(f=>f.style.width=f.dataset.w+"%"));
 }
@@ -636,7 +845,7 @@ function showView(v){
   document.getElementById("view-legal").classList.toggle("hidden", v !== "legal");
   // nav pills only reflect tool/analysis; legal has no pill
   document.querySelectorAll(".navb").forEach(x => x.classList.toggle("on", x.dataset.view === v));
-  if(v === "analysis"){ drawSpectrogram(); }
+  if(v === "analysis"){ refreshDeepDiveSound(); drawSpectrogram(); }
   window.scrollTo(0, 0);
 }
 let cameFromSplash = false;
@@ -810,36 +1019,53 @@ function drawSpectrogram(){
 
 // ===================== DEEP DIVE: compare all models =====================
 document.getElementById("cmpBtn").onclick = async function(){
-  if(!pcm){ document.getElementById("cmpBox").innerHTML = '<p class="ap">Load a sound on <b>The tool</b> first.</p>'; return; }
+  if(!pcm){ document.getElementById("cmpBox").innerHTML = '<p class="ap">Load a sound above first.</p>'; return; }
   const box = document.getElementById("cmpBox");
   const list = (models && models.length) ? models : ["panns","ast","cnn"];
-  box.innerHTML = '<p class="ap">Asking ' + list.length + ' models…</p>';
   const wav = encodeWav(selectedPcm(), sr);
-  let html = "";
+  // MK: one column per model up front, each with a mini stepper, so the page shows progress
+  // MK: instead of a frozen "asking 3 models" while three cat-gate + model calls run in a row.
+  // MK: each column fills in the moment its model answers - no waiting for all three.
+  box.innerHTML = list.map(function(m){
+    return '<div class="cmpcol" id="cmp-'+m+'">'
+      + (MASCOTS[m] ? '<img src="'+MASCOTS[m]+'">' : '')
+      + '<div class="cm">'+(NICE[m]||m)+'</div>'
+      + '<ul class="stepper mini">'
+      + '<li class="step"><span class="dot"></span><span class="lbl">Checking it\'s a cat</span></li>'
+      + '<li class="step"><span class="dot"></span><span class="lbl">Running the model</span></li>'
+      + '</ul></div>';
+  }).join('');
   for(const m of list){
+    const col = document.getElementById("cmp-"+m);
+    const st = col.querySelectorAll(".step");
+    if(st[0]) st[0].classList.add("active");
+    // MK: the gate is quick, the model is the wait - advance after a beat, then park on step 2
+    const t = setTimeout(function(){
+      if(st[0]){ st[0].classList.remove("active"); st[0].classList.add("done"); }
+      if(st[1]) st[1].classList.add("active");
+    }, 900);
     try{
       const fd = new FormData(); fd.append("file", wav, "snippet.wav");
       const r = await fetch(API_URL + "/predict?model=" + encodeURIComponent(m), {method:"POST", body:fd});
       const res = await r.json();
-      const conf = Math.round((res.probs[res.label]||0)*100);
+      clearTimeout(t);
+      const conf = Math.round(Math.max(...Object.values(res.probs))*100);   // MK: top mood prob, even if the gate overrode the label
       const cat = (res.cat_score!=null) ? Math.round(res.cat_score*100)+"%" : "–";
-      html += '<div class="cmpcol">'
-        + (MASCOTS[m] ? '<img src="'+MASCOTS[m]+'">' : '')
+      let h = (MASCOTS[m] ? '<img src="'+MASCOTS[m]+'">' : '')
         + '<div class="cm">'+(NICE[m]||m)+'</div>'
         + '<div class="cl">'+(res.is_cat?res.label:"not a cat?")+'</div>'
-        + '<div class="cc">'+conf+'% · cat '+cat+'</div>';
-      // top-3 mini bars
+        + '<div class="cc">score '+conf+'% · cat '+cat+'</div>';
       const ranked = LABELS.map(l => [l, res.probs[l]||0]).sort((a,b)=>b[1]-a[1]).slice(0,3);
       ranked.forEach(([l,v]) => {
-        html += '<div class="cbl"><span>'+l+'</span><span>'+Math.round(v*100)+'%</span></div>'
-              + '<div class="cbar"><i style="width:'+(v*100)+'%"></i></div>';
+        h += '<div class="cbl"><span>'+l+'</span><span>'+Math.round(v*100)+'%</span></div>'
+           + '<div class="cbar"><i style="width:'+(v*100)+'%"></i></div>';
       });
-      html += '</div>';
+      col.innerHTML = h;
     }catch(e){
-      html += '<div class="cmpcol"><div class="cm">'+(NICE[m]||m)+'</div><p class="ap small">failed</p></div>';
+      clearTimeout(t);
+      col.innerHTML = '<div class="cm">'+(NICE[m]||m)+'</div><p class="ap small">failed</p>';
     }
   }
-  box.innerHTML = html;
 };
 
 // ---------- custom audio player (brand look) ----------
@@ -872,6 +1098,66 @@ document.getElementById("pbar").onclick = function(e){
   const frac = (e.clientX - r.left) / r.width;
   if(player.duration) player.currentTime = frac * player.duration;
 };
+
+// ---------- deep dive: its own "Sound" card (upload + player), same shared clip ----------
+// MK: the deep dive used to depend on The tool for loading. Now it has its own upload and a
+// MK: second set of play controls. Both drive the SAME <audio id="player"> and the same pcm,
+// MK: so The tool and the deep dive always show the same loaded sound.
+function refreshDeepDiveSound(){
+  const empty = document.getElementById("ddEmpty"), loaded = document.getElementById("ddLoaded");
+  if(!empty || !loaded) return;
+  if(pcm){
+    loaded.classList.remove("hidden"); empty.classList.add("hidden");
+    document.getElementById("ddCap").textContent = document.getElementById("loadedCap").textContent;
+    document.getElementById("ddDur").textContent = fmtTime(player.duration);
+    document.getElementById("ddTime").textContent = fmtTime(player.currentTime);
+    document.getElementById("ddFill").style.width = (player.duration ? (player.currentTime/player.duration*100) : 0) + "%";
+    document.getElementById("ddPlay").textContent = player.paused ? "▶" : "❚❚";
+  } else {
+    loaded.classList.add("hidden"); empty.classList.remove("hidden");
+  }
+  // MK: only redraw the spectrogram when the deep dive is actually on screen
+  if(!document.getElementById("view-analysis").classList.contains("hidden")) drawSpectrogram();
+}
+// upload straight from the deep dive
+document.getElementById("ddFile").onchange = async (e) => {
+  const f = e.target.files[0];
+  if(f) await loadBlob(f, "file " + f.name);
+  e.target.value = "";   // MK: so picking the same file again still fires change
+};
+// change sound = same reset as the tool's link, then the upload zone shows again
+document.getElementById("ddChange").onclick = () => { document.getElementById("clearBtn").onclick(); };
+// second play control, driving the same audio element
+document.getElementById("ddPlay").onclick = function(){
+  stopSelection();
+  if(player.paused){ player.play(); } else { player.pause(); }
+};
+player.addEventListener("play",  () => { document.getElementById("ddPlay").textContent = "❚❚"; });
+player.addEventListener("pause", () => { document.getElementById("ddPlay").textContent = "▶"; });
+player.addEventListener("ended", () => { document.getElementById("ddPlay").textContent = "▶"; });
+player.addEventListener("timeupdate", () => {
+  const d = player.duration || 0;
+  document.getElementById("ddFill").style.width = (d ? (player.currentTime/d*100) : 0) + "%";
+  document.getElementById("ddTime").textContent = fmtTime(player.currentTime);
+});
+player.addEventListener("loadedmetadata", () => { document.getElementById("ddDur").textContent = fmtTime(player.duration); });
+document.getElementById("ddBar").onclick = function(e){
+  const r = this.getBoundingClientRect();
+  const frac = (e.clientX - r.left) / r.width;
+  if(player.duration) player.currentTime = frac * player.duration;
+};
+
+// ---------- real drag-and-drop for both drop zones ----------
+// MK: the label text always said "Drop an mp3 / wav here" but only click worked. Now dropping works too.
+document.querySelectorAll(".drop").forEach(z => {
+  z.addEventListener("dragover", e => { e.preventDefault(); z.classList.add("over"); });
+  z.addEventListener("dragleave", () => { z.classList.remove("over"); });
+  z.addEventListener("drop", async e => {
+    e.preventDefault(); z.classList.remove("over");
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if(f) await loadBlob(f, "file " + f.name);
+  });
+});
 
 // ---------- play only the selected snippet ----------
 let selSource = null;
@@ -915,7 +1201,7 @@ function buildExplain(){
       + '<p class="pro">+ highest expected accuracy, captures global patterns.</p>'
       + '<p class="con">– biggest, slowest, worst cold-start.</p></div>'
     + '<div class="mcard"><h4><img src="'+C+'">CNN</h4>'
-      + '<p>Our <b>own</b> CNN, trained from scratch on just the cat data for exactly these 10 moods (val macro-F1 ≈ 0.85).</p>'
+      + '<p>Our <b>own</b> CNN, trained from scratch on just the cat data for exactly these 10 moods (82% on cats it never heard).</p>'
       + '<p class="pro">+ purpose-built, small, fast, sharp on clean clips.</p>'
       + '<p class="con">– learned from ~3 hours; brittle outside its training world.</p></div>'
   + '</div>'
@@ -925,17 +1211,69 @@ function buildExplain(){
   + '<p>We have roughly <b>3 hours</b> of labelled cat audio. AudioSet is <b>~5,800 hours</b>. A model trained from scratch has to learn <i>what sound even is</i> from those 3 hours; a pretrained encoder already knows that and only has to learn what separates "annoyed" from "wants food". That single ratio — 3 vs 5,800 — is why the pretrained branches start ~10 points ahead, and why our own CNN, impressive as it is, has the steepest hill to climb.</p>'
 
   + '<h3>4 · The hard part isn\'t the model — it\'s the labels</h3>'
-  + '<p>There is no objective truth for a cat\'s mood. Every training label was a <b>human</b> deciding that <i>this</i> meow means "Mating" and <i>that</i> one means "Warning". People disagree — the boundary between <code>Warning</code>, <code>Defence</code> and <code>Fighting</code> is genuinely blurry, and two annotators will split the same clip differently. So the model isn\'t learning "the truth"; it is learning to <b>reproduce a panel of humans</b>, disagreements and all. A ceiling of maybe 85% isn\'t the model failing — it is often the label noise showing through.</p>'
+  + '<p>There is no objective truth for a cat\'s mood. Every training label was a <b>human</b> deciding that <i>this</i> meow means "Mating" and <i>that</i> one means "Warning". People disagree — the boundary between <code>Warning</code>, <code>Defence</code> and <code>Fighting</code> is genuinely blurry, and two annotators will split the same clip differently. So the model isn\'t learning "the truth"; it is learning to <b>reproduce a panel of humans</b>, disagreements and all. All three of our models — and the source paper — trip on the same pairs: <code>Happy</code> vs <code>Paining</code>, <code>Warning</code> vs <code>Mating</code>. When four different models fail in the same place, that isn\'t the model failing — it is the label ambiguity showing through.</p>'
 
   + '<h3>5 · Data traps we had to dodge</h3>'
   + '<ul>'
-    + '<li><b>Leakage.</b> The clips come from YouTube videos, several per cat, and we cut each into overlapping windows. A naive random split puts the <i>same recording</i> in train and test — the model recognises the cat, not the mood, and the score looks amazing. We split by <code>source_file_id</code> (grouped CV) so a cat is never on both sides. This is why we report ~88%, not the source paper\'s 91%.</li>'
+    + '<li><b>Leakage.</b> The clips come from YouTube videos, several per recording, plus augmented near-copies of each clip. A naive random split puts the <i>same recording</i> — or its copy — in train and test: the model recognises the recording, not the mood, and the score looks amazing. We split by recording, so a cat is never on both sides. The source paper reports 91% with random cross-validation; we rebuilt that set-up with our own model and it gains 2–3 points for free. Measured with our best model, their protocol gives 93–94%, ours 88–89% — same model, different test. Full experiment in section 8.</li>'
+    + '<li><b>Padding.</b> Short clips have to be stretched to a fixed length. Zero-padding taught our own CNN to recognise <i>silence</i> — it went from 0.68 to 0.82 macro-F1 once we looped the sound instead of padding with zeros.</li>'
     + '<li><b>Class imbalance & short clips.</b> Some moods are rare; some calls are a fraction of a second. Both push the model toward guessing the common classes.</li>'
     + '<li><b>Domain gap.</b> AudioSet was recorded in a different world than our clips — different mics, rooms, compression. The features transfer, but not perfectly.</li>'
   + '</ul>'
 
   + '<h3>6 · What it can and can\'t do</h3>'
-  + '<p>It can give a fast, reasoned guess with a confidence number and flag non-cats. It <b>cannot</b> tell you what a cat "really feels", handle a mood it never saw, or promise that 60% confident means 60% correct — confidence is calibrated loosely at best. The honest framing for the three models is <b>not a leaderboard</b>: with 300 clips per class and fold-to-fold swings of 2–4 points, we usually can\'t prove one is truly better. Three independent readings of the same sound is the feature — not a winner.</p>';
+  + '<p>It can give a fast, reasoned guess with a score and flag non-cats. It <b>cannot</b> tell you what a cat "really feels", handle a mood it never saw, or promise that 60% confident means 60% correct — confidence is calibrated loosely at best. On 447 held-out clips from cats the models never heard: AST 88%, PANNs 83%, CNN 82%. All three agree on three clips in four, and a majority vote lands at 87% — below AST alone, so voting doesn\'t buy accuracy. The honest framing is <b>not a leaderboard</b>: with ~45 test clips per class, a single clip moves a class score by two points. Three independent readings of the same sound is the feature — not a winner.</p>'
+
+  + '<h3>7 · The numbers, in full</h3>'
+  + '<p>Everything below is one run of the <b>deployed</b> pipeline over the held-out test split: <b>447 original clips</b>, grouped by source recording so no cat is on both sides, cat-gate switched off (these are all cats). Accuracy and macro-F1 — the average F1 over the ten moods, so a rare mood counts as much as a common one.</p>'
+  + '<div class="stats">'
+    + '<div class="stat"><img src="'+L+'"><div class="l">Leo · PANNs</div><div class="n">83.5%</div><div class="s">macro-F1 83.3 · matches Basti\'s notebook exactly</div></div>'
+    + '<div class="stat"><img src="'+R+'"><div class="l">PAW5 · AST</div><div class="n">88.1%</div><div class="s">macro-F1 88.2 · our best</div></div>'
+    + '<div class="stat"><img src="'+C+'"><div class="l">Minou · CNN</div><div class="n">81.7%</div><div class="s">macro-F1 81.5 · within 2 clips of Ceven\'s notebook</div></div>'
+  + '</div>'
+  + '<div class="two">'
+    + '<div class="box"><p><b>Do they agree?</b> On 334 of 447 clips (75%) all three say the same thing. A majority vote of the three lands at <b>87.3%</b> — <i>below</i> AST alone. Voting does not buy accuracy here, because the models\' mistakes are correlated: they read the same picture and trip on the same ambiguities.</p></div>'
+    + '<div class="box"><p><b>Where do they fail?</b> All three — and the 2018 paper — confuse <code>Happy</code> with <code>Paining</code> and <code>Warning</code> with <code>Mating</code>. Weakest classes by F1: PANNs Paining .69 / Happy .69; AST Paining .74 / Warning .79; CNN Paining .63 / Happy .67. <code>Resting</code> is 1.00 for all three.</p></div>'
+  + '</div>'
+  + '<table class="tbl"><tr><th>model</th><th>backbone</th><th>head</th><th class="num">acc</th><th class="num">macro-F1</th><th>author</th></tr>'
+    + '<tr><td>PANNs</td><td>CNN14, AudioSet, 32 kHz · 11 s, frozen</td><td>StandardScaler + LogReg (C=0.01)</td><td class="num">83.5</td><td class="num">83.3</td><td>Basti</td></tr>'
+    + '<tr><td>AST</td><td>Audio Spectrogram Transformer, AudioSet, 16 kHz · 11 s, frozen, mean-pooled</td><td>LogReg (balanced)</td><td class="num hi">88.1</td><td class="num hi">88.2</td><td>Chris</td></tr>'
+    + '<tr><td>CNN</td><td>own 106 k-param CNN on log-mel, trained from scratch, loop-fill padding, natural-length eval</td><td>own softmax</td><td class="num">81.7</td><td class="num">81.5</td><td>Ceven</td></tr>'
+  + '</table>'
+
+  + '<h3>8 · The leakage experiment — where the paper\'s 91% comes from</h3>'
+  + '<p>The 2018 paper reports <b>91.1%</b> with random 10-fold cross-validation. We suspected that number was inflated by <b>leakage</b> — the same recording, or an augmented copy of it, on both sides of the split. Suspicion is cheap, so we measured it: <b>one classifier recipe, the same audio files, four ways of splitting train and test.</b> Nothing else changes, so every difference between the rows is the evaluation set-up alone.</p>'
+  + '<table class="tbl"><tr><th>set-up</th><th>what the model may see before the test</th><th>what it measures</th></tr>'
+    + '<tr class="ours"><td><b>A</b></td><td>grouped split: every source recording is entirely in train <i>or</i> test; train also holds augmented copies of <i>train</i> clips</td><td><b>our protocol</b> — "do you understand a cat you never heard?"</td></tr>'
+    + '<tr><td><b>B</b></td><td>same split, same 447 test clips — but the augmented copies of the <i>test</i> clips sit inside train</td><td>the leak "augment first, split later"</td></tr>'
+    + '<tr><td><b>C1</b></td><td>random 10-fold CV on the 2,953 originals; clips of the same recording land in different folds</td><td>the leak "same recording on both sides"</td></tr>'
+    + '<tr><td><b>C2</b></td><td>random 10-fold CV on originals <b>plus</b> augmented copies</td><td><b>the paper\'s protocol</b> — both leaks at once</td></tr>'
+    + '<tr><td><b>C2b</b></td><td>same folds as C2, scored only on the originals inside each test fold</td><td>the originals themselves get easier, not just the copies</td></tr>'
+  + '</table>'
+  + '<div class="two">'
+    + '<div><p><b>PANNs recipe</b> <span style="color:#c9a9dc">(scaler + LogReg C=0.01)</span></p>'
++ '<div class="hb"><div class="k">A · ours</div><div class="t"><i class="dim" style="width:84.3%"></i></div><div class="v">84.3</div></div>'
++ '<div class="hb"><div class="k">B · leaky aug</div><div class="t"><i style="width:86.4%"></i></div><div class="v">86.4</div></div>'
++ '<div class="hb"><div class="k">C1 · random CV</div><div class="t"><i style="width:85.3%"></i></div><div class="v">85.3</div></div>'
++ '<div class="hb"><div class="k">C2 · paper protocol</div><div class="t"><i style="width:85.6%"></i></div><div class="v">85.6</div></div>'
++ '<div class="hb"><div class="k">C2b · on originals</div><div class="t"><i style="width:86.9%"></i></div><div class="v">86.9</div></div>'
++ '<div class="hb ref"><div class="k">paper (2018)</div><div class="t"></div><div class="v">91.1</div></div>'
+    + '</div>'
+    + '<div><p><b>AST recipe</b> <span style="color:#c9a9dc">(the deployed head, LogReg balanced)</span></p>'
++ '<div class="hb"><div class="k">A · ours</div><div class="t"><i class="dim" style="width:89.0%"></i></div><div class="v">89.0</div></div>'
++ '<div class="hb"><div class="k">B · leaky aug</div><div class="t"><i style="width:94.2%"></i></div><div class="v">94.2</div></div>'
++ '<div class="hb"><div class="k">C1 · random CV</div><div class="t"><i style="width:90.7%"></i></div><div class="v">90.7</div></div>'
++ '<div class="hb"><div class="k">C2 · paper protocol</div><div class="t"><i style="width:93.0%"></i></div><div class="v">93.0</div></div>'
++ '<div class="hb"><div class="k">C2b · on originals</div><div class="t"><i style="width:94.4%"></i></div><div class="v">94.4</div></div>'
++ '<div class="hb ref"><div class="k">paper (2018)</div><div class="t"></div><div class="v">91.1</div></div>'
+    + '</div>'
+  + '</div>'
+  + '<p style="font-size:12.5px;color:#c9a9dc">Accuracy in %. Grey bar = our own protocol (A). C1/C2/C2b are means over 10 folds; fold-to-fold spread ±1–2 points. Full script and cached embeddings: <code>leakage_experiment.py</code>, <code>leakage_experiment_ast.py</code>.</p>'
+  + '<div class="box"><p><b>Reading it.</b> Measured the paper\'s way, our best model scores <b>93–94%</b> — above the paper\'s 91. Measured on cats it never heard: <b>88–89%</b>. Same model; only the test changes. The dominant leak is <b>augment-before-split</b> (row B: +5 points on the identical test set). Same-recording-across-folds alone is small (C1), because only 91 of 2,823 recordings have more than one clip.</p>'
+  + '<p>How much a model gains from leakage depends on how much it can memorise: the heavily regularised PANNs head gains 2–3 points, the AST head 4–5, and an end-to-end trained network — like the paper\'s — would gain more. That is why a leaky evaluation flatters exactly the models you would expect to be best.</p>'
+  + '<p><b>What we don\'t claim:</b> that the authors did anything wrong. In 2018 audio ML, grouped splits weren\'t standard practice. Their protocol is more generous than ours — that is the whole finding.</p></div>'
+
+  + '';
 }
 
 // init

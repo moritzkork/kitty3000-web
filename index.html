@@ -263,8 +263,9 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
   #app{padding:12px 16px calc(28px + env(safe-area-inset-bottom,0px));}
   .topbar{margin-bottom:12px; gap:10px; flex-wrap:wrap;}
   .topbar .brand{font-size:22px;}
-  .nav{gap:8px; margin-bottom:14px;}
+  .nav{gap:8px; margin-bottom:14px; flex-wrap:wrap;}
   .navb{flex:1; padding:11px 10px; font-size:15px; text-align:center;}
+  .navb[data-view="lewagon"]{flex:1 1 100%;}   /* MK: long "Data Science at Le Wagon" label gets its own row on phones */
   .cols{gap:16px;}
   .card{padding:16px; border-radius:16px;}
   .tabs{gap:6px;}

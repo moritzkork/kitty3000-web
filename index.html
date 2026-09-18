@@ -772,6 +772,20 @@ async function loadRandomSample(){
   buildSampleSelect();
 }
 document.getElementById("surpriseBtn").onclick = loadRandomSample;
+
+// MK: the Deep dive opens with a demo sample so there is something to see - but this MUST NOT
+// MK: touch the tool: forTool=false, and we don't set the tool's sampleLabel/chosenSample.
+// MK: The tool therefore always starts empty; the user loads their own sound there.
+async function autoloadDeepDiveSample(){
+  const pool = SAMPLES.map(x => ({f:x[1], n:x[0], real:x[2], m:null}))
+                      .concat(TEST_CATS.map(c => ({f:c.f, n:null, real:null, m:c.m})));
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  const label = pick.n ? (demoMode ? ("Sound " + pick.n) : ("Sound " + pick.n + " · " + pick.real))
+                       : (demoMode ? "Real cat" : ("Real cat · " + pick.m));
+  const blob = await (await fetch(pick.f)).blob();
+  await loadBlob(blob, demoMode ? (pick.n ? ("Sound " + pick.n) : "Real cat") : label, false);
+  currentTruth = pick.m;   // MK: keep ground truth for the deep-dive compare/labels (null for classic samples)
+}
 function openSampleDD(){ document.getElementById("sampleDD").classList.add("open"); document.getElementById("sampleList").classList.remove("hidden"); }
 function closeSampleDD(){ document.getElementById("sampleDD").classList.remove("open"); document.getElementById("sampleList").classList.add("hidden"); }
 document.getElementById("sampleBtn").onclick = (e) => {
@@ -811,7 +825,8 @@ document.getElementById("recBtn").onclick = async function(){
 };
 
 // ===================== LOAD + DECODE =====================
-async function loadBlob(blob, name){
+async function loadBlob(blob, name, forTool){
+  if(forTool === undefined) forTool = true;   // MK: default = update the tool UI; deep-dive autoload passes false
   currentTruth = null;   // MK: uploads/recordings have no known ground truth; sample loads set it afterwards
   sourceName = name;
   const buf = await blob.arrayBuffer();
@@ -838,9 +853,11 @@ async function loadBlob(blob, name){
   const rs = document.getElementById("rStart"), re = document.getElementById("rEnd");
   rs.value = 0; re.value = 100; updateRangeCap();
 
-  document.getElementById("loadedBox").classList.remove("hidden");
-  document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));
-  document.querySelectorAll(".panel").forEach(p=>p.classList.add("hidden"));
+  if(forTool){   // MK: deep-dive autoload passes forTool=false, so the tool keeps its empty start
+    document.getElementById("loadedBox").classList.remove("hidden");
+    document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.add("hidden"));
+  }
   refreshDeepDiveSound();   // MK: the deep-dive "Sound" card mirrors whatever is loaded
 }
 
@@ -1009,8 +1026,10 @@ function showView(v){
   document.getElementById("view-lewagon").classList.toggle("hidden", v !== "lewagon");
   // nav pills reflect tool/analysis/lewagon; legal has no pill
   document.querySelectorAll(".navb").forEach(x => x.classList.toggle("on", x.dataset.view === v));
+  // MK: Deep dive opens with a demo sample (autoload) so there is something to see;
+  // MK: the tool stays empty because autoloadDeepDiveSample() does not touch the tool UI.
   if(v === "analysis" && !pcm){
-    loadRandomSample().then(function(){ refreshDeepDiveSound(); drawSpectrogram(); });
+    autoloadDeepDiveSample().then(function(){ refreshDeepDiveSound(); drawSpectrogram(); });
   }else if(v === "analysis"){ refreshDeepDiveSound(); drawSpectrogram(); }
   window.scrollTo(0, 0);
   // MK: keep the address bar in sync so the deep dive can be shared as kitty3000.web.app/#deep-dive

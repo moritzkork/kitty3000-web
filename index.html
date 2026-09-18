@@ -1273,7 +1273,7 @@ function buildExplain(){
 + '<div class="hb ref"><div class="k">paper (2018)</div><div class="t"></div><div class="v">91.1</div></div>'
     + '</div>'
   + '</div>'
-  + '<p style="font-size:12.5px;color:#c9a9dc">Accuracy in %. Grey bar = our own protocol (A). C1/C2/C2b are means over 10 folds; fold-to-fold spread ±1–2 points. Full script and cached embeddings: <code>leakage_experiment.py</code>, <code>leakage_experiment_ast.py</code>.</p>'
+  + '<p style="font-size:12.5px;color:#c9a9dc">Accuracy in %. Grey bar = our own protocol (A). C1/C2/C2b are means over 10 folds; fold-to-fold spread ±1–2 points.</p>'
   + '<div class="box"><p><b>Reading it.</b> Measured the paper\'s way, our best model scores <b>93–94%</b> — above the paper\'s 91. Measured on cats it never heard: <b>88–89%</b>. Same model; only the test changes. The dominant leak is <b>augment-before-split</b> (row B: +5 points on the identical test set). Same-recording-across-folds alone is small (C1), because only 91 of 2,823 recordings have more than one clip.</p>'
   + '<p>How much a model gains from leakage depends on how much it can memorise: the heavily regularised PANNs head gains 2–3 points, the AST head 4–5, and an end-to-end trained network — like the paper\'s — would gain more. That is why a leaky evaluation flatters exactly the models you would expect to be best.</p>'
   + '<p><b>What we don\'t claim:</b> that the authors did anything wrong. In 2018 audio ML, grouped splits weren\'t standard practice. Their protocol is more generous than ours — that is the whole finding.</p></div>'

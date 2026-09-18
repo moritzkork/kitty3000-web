@@ -3,7 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kitty3000</title>
+<title>Kitty3000 — what is your cat saying?</title>
+<meta name="description" content="Play it a cat, it tells you the mood. Three audio models re-run a 2018 cat-sound study: 88% on cats they never heard. Full numbers and the leakage experiment in the Deep Dive.">
+<link rel="canonical" href="https://kitty3000.web.app/">
+<!-- MK: Open Graph / Twitter cards - this is what Slack, LinkedIn, WhatsApp show as the link preview -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kitty3000">
+<meta property="og:url" content="https://kitty3000.web.app/">
+<meta property="og:title" content="Kitty3000 — what is your cat saying?">
+<meta property="og:description" content="Play it a cat, it tells you the mood. Three audio models re-run a 2018 cat-sound study: 88% on cats they never heard. Full numbers in the Deep Dive.">
+<meta property="og:image" content="https://kitty3000.web.app/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Kitty3000 - Leo the lion, a sleeping cat and PAW5 the robot cat around the Kitty3000 logo">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kitty3000 — what is your cat saying?">
+<meta name="twitter:description" content="Play it a cat, it tells you the mood. Three audio models, 88% on cats they never heard. Full numbers in the Deep Dive.">
+<meta name="twitter:image" content="https://kitty3000.web.app/assets/og.png">
 <style>
 /* MK: self-hosted so no request goes to Google (visitor IP stays private). SIL OFL, see assets/OFL-Fredoka.txt */
 @font-face{ font-family:'Fredoka'; src:url('assets/fredoka-var.woff2') format('woff2'); font-weight:400 700; font-style:normal; font-display:swap; }
@@ -602,7 +618,7 @@ function buildSampleSelect(){
 }
 
 // MK: Surprise me - pick a random clip from the WHOLE pool (classics + every test cat)
-document.getElementById("surpriseBtn").onclick = async () => {
+async function loadRandomSample(){
   const pool = SAMPLES.map(x => ({f:x[1], n:x[0], real:x[2], m:null}))
                       .concat(TEST_CATS.map(c => ({f:c.f, n:null, real:null, m:c.m})));
   const pick = pool[Math.floor(Math.random() * pool.length)];
@@ -613,7 +629,8 @@ document.getElementById("surpriseBtn").onclick = async () => {
   closeSampleDD();
   await loadSampleFile(pick.f, demoMode ? (pick.n ? ("Sound " + pick.n) : "Real cat") : label, pick.m);
   buildSampleSelect();
-};
+}
+document.getElementById("surpriseBtn").onclick = loadRandomSample;
 function openSampleDD(){ document.getElementById("sampleDD").classList.add("open"); document.getElementById("sampleList").classList.remove("hidden"); }
 function closeSampleDD(){ document.getElementById("sampleDD").classList.remove("open"); document.getElementById("sampleList").classList.add("hidden"); }
 document.getElementById("sampleBtn").onclick = (e) => {
@@ -850,8 +867,15 @@ function showView(v){
   document.getElementById("view-legal").classList.toggle("hidden", v !== "legal");
   // nav pills only reflect tool/analysis; legal has no pill
   document.querySelectorAll(".navb").forEach(x => x.classList.toggle("on", x.dataset.view === v));
-  if(v === "analysis"){ refreshDeepDiveSound(); drawSpectrogram(); }
+  if(v === "analysis" && !pcm){
+    loadRandomSample().then(function(){ refreshDeepDiveSound(); drawSpectrogram(); });
+  }else if(v === "analysis"){ refreshDeepDiveSound(); drawSpectrogram(); }
   window.scrollTo(0, 0);
+  // MK: keep the address bar in sync so the deep dive can be shared as kitty3000.web.app/#deep-dive
+  try{
+    const clean = location.pathname + location.search;
+    history.replaceState(null, "", v === "analysis" ? clean + "#deep-dive" : clean);
+  }catch(e){}
 }
 let cameFromSplash = false;
 document.querySelectorAll(".navb").forEach(nb => nb.onclick = () => showView(nb.dataset.view));
@@ -1284,6 +1308,25 @@ function buildExplain(){
 // init
 buildSampleSelect();
 buildExplain();
+
+// MK: deep link - kitty3000.web.app/#deep-dive opens the deep dive directly (no splash, no Start click).
+// MK: enter() does the same as the Start button; showView runs once the app is visible.
+function wantsDeepDive(){
+  const h = (location.hash || "").replace("#", "").toLowerCase();
+  return h === "deep-dive" || h === "deepdive" || h === "analysis";
+}
+if(wantsDeepDive()){
+  enter().then(function(){ showView("analysis"); });
+}
+// MK: browser back/forward between #deep-dive and the tool, once the app is open
+window.addEventListener("hashchange", function(){
+  if(document.getElementById("app").classList.contains("hidden")){
+    // MK: still on the splash and someone typed #deep-dive - treat it like the deep link
+    if(wantsDeepDive()) enter().then(function(){ showView("analysis"); });
+    return;
+  }
+  showView(wantsDeepDive() ? "analysis" : "tool");
+});
 </script>
 </body>
 </html>

@@ -188,7 +188,10 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 .navb{padding:11px 20px; border-radius:14px; font-weight:600; font-size:16px; font-family:inherit; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:#fff; cursor:pointer;}
 .navb.on{background:var(--orange); color:var(--purple2); border-color:var(--orange);}
 .navb[data-view="tool"]::before{content:""; display:inline-block; width:15px; height:15px; margin-right:7px; vertical-align:-2px; background-color:currentColor; -webkit-mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'><ellipse cx='6' cy='9' rx='2.2' ry='3'/><ellipse cx='11' cy='6.4' rx='2.2' ry='3.2'/><ellipse cx='16' cy='7.4' rx='2.2' ry='3'/><ellipse cx='20' cy='11' rx='2' ry='2.6'/><path d='M12 12c-3 0-6 2.4-6 5.2 0 2 1.7 3 3.3 2.4 1.7-.7 3.7-.7 5.4 0 1.6.6 3.3-.4 3.3-2.4 0-2.8-3-5.2-6-5.2z'/></svg>") no-repeat center/contain; mask:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'><ellipse cx='6' cy='9' rx='2.2' ry='3'/><ellipse cx='11' cy='6.4' rx='2.2' ry='3.2'/><ellipse cx='16' cy='7.4' rx='2.2' ry='3'/><ellipse cx='20' cy='11' rx='2' ry='2.6'/><path d='M12 12c-3 0-6 2.4-6 5.2 0 2 1.7 3 3.3 2.4 1.7-.7 3.7-.7 5.4 0 1.6.6 3.3-.4 3.3-2.4 0-2.8-3-5.2-6-5.2z'/></svg>") no-repeat center/contain;}
-#view-analysis{max-width:940px; margin:0 auto;}
+#view-analysis, #view-lewagon{max-width:940px; margin:0 auto;}
+/* MK: let links inside the .nerd blocks (About Le Wagon etc.) match the legal-page link look */
+.nerd a{color:#fff; border-bottom:1px solid rgba(255,255,255,.4); text-decoration:none;}
+.nerd a:hover{border-bottom-color:#fff;}
 .acard{margin-bottom:22px;}
 .ah{color:#f3d9ff; font-size:24px; margin:0 0 6px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
 .tag{font-size:13px; font-weight:600; color:var(--purple2); background:linear-gradient(90deg,var(--orange),var(--orange2)); padding:3px 10px; border-radius:999px; letter-spacing:.02em; white-space:nowrap;}
@@ -224,6 +227,11 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 .nerd .mcard img{width:26px; height:26px; object-fit:contain; vertical-align:middle;}
 .nerd .mcard .pro{color:#9fe6b0;} .nerd .mcard .con{color:#f5b8a0;}
 .nerd .mcard p{font-size:13.5px; margin:5px 0;}
+/* MK: compact "lead line + keyword bullets" layout for the About Le Wagon curriculum cards */
+.nerd .mcard .lead{color:#fff; font-weight:600; font-size:14px; line-height:1.35; margin:0 0 9px;}
+.nerd .mcard ul{margin:0; padding:0; list-style:none;}
+.nerd .mcard li{font-size:13px; line-height:1.45; margin:5px 0; padding-left:19px;}
+.nerd .mcard li::before{top:3px; width:12px; height:12px;}
 .nerd .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:12px 0;}
 .nerd .stat{background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:14px 14px 12px; text-align:center;}
 .nerd .stat img{width:44px; height:44px; object-fit:contain;}
@@ -325,6 +333,7 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
   <div class="nav">
     <button class="navb on" data-view="tool">The tool</button>
     <button class="navb" data-view="analysis">🔬 Deep dive</button>
+    <button class="navb" data-view="lewagon">🎓 Data Science at Le Wagon</button>
   </div>
 
   <div id="view-tool">
@@ -428,6 +437,95 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
     <div class="card acard nerd" id="explain"></div>
 
   </div><!-- /view-analysis -->
+
+  <!-- ============ ABOUT LE WAGON ============ -->
+  <div id="view-lewagon" class="hidden">
+
+    <div class="card acard nerd">
+      <h2 class="ah">The program behind Kitty3000 <span class="tag">where this came from</span></h2>
+      <p class="ap lead">Kitty3000 was built in the final two weeks of the <a href="https://www.lewagon.com/data-science-course" target="_blank" rel="noopener">Le&nbsp;Wagon Data Science &amp; AI</a> bootcamp in Berlin. Here is what the nine weeks before it actually covered — and the people who taught it.</p>
+      <div class="stats">
+        <div class="stat"><div class="n">9</div><div class="l">weeks</div><div class="s">full-time</div></div>
+        <div class="stat"><div class="n">~400</div><div class="l">hours</div><div class="s">teaching &amp; labs</div></div>
+        <div class="stat"><div class="n">Berlin</div><div class="l">Le Wagon</div><div class="s">Summer 2026</div></div>
+      </div>
+    </div>
+
+    <div class="card acard nerd">
+      <h2 class="ah">The curriculum <span class="tag">end to end, in nine weeks</span></h2>
+      <p class="ap">From the raw data toolkit all the way to shipping a trained model as a live service — the same path Kitty3000 followed.</p>
+      <div class="grid3">
+        <div class="mcard">
+          <h4>🐍 Data &amp; Python toolkit</h4>
+          <p class="lead">Get the data, clean it, trust your code.</p>
+          <ul>
+            <li>Python &amp; pandas</li>
+            <li>SQL</li>
+            <li>APIs &amp; web scraping</li>
+            <li>OOP, tests, packaging</li>
+          </ul>
+        </div>
+        <div class="mcard">
+          <h4>📊 Statistics &amp; decision science</h4>
+          <p class="lead">Tell signal from noise — then show it.</p>
+          <ul>
+            <li>Probability &amp; statistics</li>
+            <li>Hypothesis testing &amp; inference</li>
+            <li>Linear &amp; logistic regression</li>
+            <li>Dashboards</li>
+          </ul>
+        </div>
+        <div class="mcard">
+          <h4>🤖 Machine learning</h4>
+          <p class="lead">The scikit-learn core, under the hood.</p>
+          <ul>
+            <li>Preprocessing, features &amp; metrics</li>
+            <li>Tuning &amp; cross-validation</li>
+            <li>Ensembles &amp; pipelines</li>
+            <li>Clustering, time series, NLP</li>
+          </ul>
+        </div>
+        <div class="mcard">
+          <h4>🧠 Deep learning</h4>
+          <p class="lead">Neural nets in TensorFlow/Keras &amp; PyTorch.</p>
+          <ul>
+            <li>CNNs &amp; RNNs</li>
+            <li>Word embeddings</li>
+            <li>Transformers</li>
+            <li>Generative models &amp; RL</li>
+          </ul>
+        </div>
+        <div class="mcard">
+          <h4>☁️ MLOps</h4>
+          <p class="lead">Get the model out of the notebook.</p>
+          <ul>
+            <li>uv &amp; FastAPI</li>
+            <li>Docker</li>
+            <li>Google Cloud (Cloud Run)</li>
+            <li>BigQuery &amp; Git workflows</li>
+          </ul>
+        </div>
+        <div class="mcard">
+          <h4>🚀 Two-week final project</h4>
+          <p class="lead">Ship a real ML product as a team.</p>
+          <ul>
+            <li>Data → models → API → front end</li>
+            <li>Deployed to the cloud</li>
+            <li>Ours became Kitty3000</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card acard nerd">
+      <h2 class="ah">Taught by practitioners <span class="tag">you notice on day one</span></h2>
+      <p class="ap">The part that makes it work is who stands at the front: people who do this for a living and teach at Le&nbsp;Wagon alongside their day jobs. The examples are real, the war stories are recent, and the answer to "how would you actually ship this?" comes from experience, not slides.</p>
+      <div class="box">
+        <p class="ap" style="margin:0;">Huge thanks to the teaching team and TAs of Le&nbsp;Wagon Berlin who ran these nine weeks — <a href="https://www.linkedin.com/in/vladislav-drozhzhin/" target="_blank" rel="noopener"><b>Vlad</b></a>, <a href="https://www.linkedin.com/in/andr%C3%A9a-parente-23aa4339/" target="_blank" rel="noopener"><b>Andrea</b></a>, <a href="https://www.linkedin.com/in/jules/" target="_blank" rel="noopener"><b>Jules</b></a>, <a href="https://www.linkedin.com/in/diogo-anjos-freitas/" target="_blank" rel="noopener"><b>Diogo</b></a>, <a href="https://www.linkedin.com/in/federico-griggio/" target="_blank" rel="noopener"><b>Federico</b></a>, <a href="https://www.linkedin.com/in/cynthia-siew-you-chan-acca-11809722a/" target="_blank" rel="noopener"><b>Cynthia</b></a> and the whole batch.</p>
+      </div>
+    </div>
+
+  </div><!-- /view-lewagon -->
 
   <!-- ============ LEGAL: Impressum + Datenschutz ============ -->
   <div id="view-legal" class="hidden">
@@ -907,7 +1005,8 @@ function showView(v){
   document.getElementById("view-tool").classList.toggle("hidden", v !== "tool");
   document.getElementById("view-analysis").classList.toggle("hidden", v !== "analysis");
   document.getElementById("view-legal").classList.toggle("hidden", v !== "legal");
-  // nav pills only reflect tool/analysis; legal has no pill
+  document.getElementById("view-lewagon").classList.toggle("hidden", v !== "lewagon");
+  // nav pills reflect tool/analysis/lewagon; legal has no pill
   document.querySelectorAll(".navb").forEach(x => x.classList.toggle("on", x.dataset.view === v));
   if(v === "analysis" && !pcm){
     loadRandomSample().then(function(){ refreshDeepDiveSound(); drawSpectrogram(); });
@@ -916,7 +1015,8 @@ function showView(v){
   // MK: keep the address bar in sync so the deep dive can be shared as kitty3000.web.app/#deep-dive
   try{
     const clean = location.pathname + location.search;
-    history.replaceState(null, "", v === "analysis" ? clean + "#deep-dive" : clean);
+    const hash = v === "analysis" ? "#deep-dive" : (v === "lewagon" ? "#about-lewagon" : "");
+    history.replaceState(null, "", clean + hash);
   }catch(e){}
 }
 let cameFromSplash = false;
@@ -1357,17 +1457,25 @@ function wantsDeepDive(){
   const h = (location.hash || "").replace("#", "").toLowerCase();
   return h === "deep-dive" || h === "deepdive" || h === "analysis";
 }
+// MK: kitty3000.web.app/#about-lewagon opens the About Le Wagon page directly (same as Deep dive).
+function wantsLeWagon(){
+  const h = (location.hash || "").replace("#", "").toLowerCase();
+  return h === "about-lewagon" || h === "lewagon" || h === "about";
+}
 if(wantsDeepDive()){
   enter().then(function(){ showView("analysis"); });
+}else if(wantsLeWagon()){
+  enter().then(function(){ showView("lewagon"); });
 }
-// MK: browser back/forward between #deep-dive and the tool, once the app is open
+// MK: browser back/forward between #deep-dive / #about-lewagon and the tool, once the app is open
 window.addEventListener("hashchange", function(){
   if(document.getElementById("app").classList.contains("hidden")){
-    // MK: still on the splash and someone typed #deep-dive - treat it like the deep link
+    // MK: still on the splash and someone typed a deep-link hash - treat it like the deep link
     if(wantsDeepDive()) enter().then(function(){ showView("analysis"); });
+    else if(wantsLeWagon()) enter().then(function(){ showView("lewagon"); });
     return;
   }
-  showView(wantsDeepDive() ? "analysis" : "tool");
+  showView(wantsDeepDive() ? "analysis" : (wantsLeWagon() ? "lewagon" : "tool"));
 });
 </script>
 </body>

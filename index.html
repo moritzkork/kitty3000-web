@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kitty3000 — what is your cat saying?</title>
 <meta name="description" content="Play it a cat, it tells you the mood. Three audio models re-run a 2018 cat-sound study: 88% on cats they never heard. Full numbers and the leakage experiment in the Deep Dive.">
 <link rel="canonical" href="https://kitty3000.web.app/">
@@ -245,6 +245,48 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 .nerd table.tbl tr.ours td{color:#fff;}
 .nerd .two{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
 @media (max-width:640px){ .nerd .stats,.nerd .two{grid-template-columns:1fr;} .nerd .hb{grid-template-columns:110px 1fr 46px;} }
+
+/* ===================== MOBILE ===================== */
+/* MK: every phone/tablet rule in one place: 16 px side gutter, tighter cards, no horizontal scroll,
+   MK: result label scales with the screen, wide tables scroll inside their card instead of the page. */
+html{background:var(--purple2);}   /* MK: safety net - never a white strip if the gradient ends early */
+@media (max-width:820px){
+  body{background-attachment:scroll;}   /* MK: iOS ignores "fixed" and Android stutters on it */
+  #app{padding:12px 16px calc(28px + env(safe-area-inset-bottom,0px));}
+  .topbar{margin-bottom:12px; gap:10px; flex-wrap:wrap;}
+  .topbar .brand{font-size:22px;}
+  .nav{gap:8px; margin-bottom:14px;}
+  .navb{flex:1; padding:11px 10px; font-size:15px; text-align:center;}
+  .cols{gap:16px;}
+  .card{padding:16px; border-radius:16px;}
+  .tabs{gap:6px;}
+  .tab{flex:1; padding:9px 8px; font-size:14px; text-align:center;}
+  .loaded-row{flex-wrap:wrap; row-gap:2px;}
+  .loaded-cap{flex:1 1 auto; min-width:0;}
+  .linkbtn{margin-left:auto; padding:4px 6px;}
+  .models{gap:8px;}
+  .mbtn{padding:8px 4px 10px; border-radius:14px;}
+  .mbtn img{height:72px;}
+  .mbtn b{font-size:14px;}
+  .analyse{font-size:17px;}
+  .big{font-size:clamp(34px, 11.5vw, 60px); overflow-wrap:anywhere;}
+  .brow{grid-template-columns:96px 1fr 40px; gap:7px 8px;}
+  .brow .ml{font-size:14px;}
+  .brow .pv{font-size:13px;}
+  .trk{height:18px;}
+  .imprint{padding:16px 0 4px; font-size:12.5px;}
+  .ah{font-size:21px;}
+  .nerd h2{font-size:21px;}
+  .nerd h3{font-size:17px;}
+  .nerd table.tbl{display:block; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .nerd table.tbl th, .nerd table.tbl td{min-width:96px;}
+  .legal h2{font-size:21px;}
+}
+@media (max-width:380px){
+  .mbtn img{height:60px;}
+  .brow{grid-template-columns:84px 1fr 38px;}
+  .topbar .brand{font-size:20px;}
+}
 </style>
 </head>
 <body>
@@ -343,7 +385,7 @@ canvas.wave{width:100%; height:90px; display:block; background:rgba(0,0,0,.15); 
 
     <!-- result -->
     <div class="card">
-      <div id="resultBox"><p class="placeholder">Load a sound and a model on the left, then press Analyse.</p></div>
+      <div id="resultBox"><p class="placeholder">Pick a sound and a cat, then press Analyse.</p></div>
     </div>
   </div>
   </div><!-- /view-tool -->
@@ -691,7 +733,7 @@ async function loadBlob(blob, name){
   // player uses the original blob
   document.getElementById("player").src = URL.createObjectURL(blob);
   const dur = len / sr;
-  document.getElementById("loadedCap").textContent = "Loaded: " + name + " · " + dur.toFixed(1) + " s";
+  document.getElementById("loadedCap").textContent = "Loaded: " + name + " · " + dur.toFixed(1) + "\u00a0s";   // MK: no-break space, so "3.4 s" never wraps
   drawWave();
   // range sliders
   const rs = document.getElementById("rStart"), re = document.getElementById("rEnd");
@@ -746,7 +788,7 @@ document.getElementById("clearBtn").onclick = () => {
   chosenSample = ""; currentTruth = null;
   document.getElementById("sampleLabel").textContent = "Pick a sample…";
   buildSampleSelect();
-  document.getElementById("resultBox").innerHTML = '<p class="placeholder" style="margin-top:10px;">Load a sound and a model on the left, then press Analyse.</p>';
+  document.getElementById("resultBox").innerHTML = '<p class="placeholder" style="margin-top:10px;">Pick a sound and a cat, then press Analyse.</p>';
   refreshDeepDiveSound();
 };
 

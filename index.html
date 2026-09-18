@@ -461,6 +461,7 @@ let pcm = null;           // Float32Array mono of the loaded clip
 let sr = 32000;           // sample rate of the decoded clip
 let sourceName = "";      // display name (masked in demo mode)
 const ac = new (window.AudioContext || window.webkitAudioContext)();
+const DECODE_RATE = 48000;   // MK: fixed decode rate, independent of the audio device
 
 // ===================== SPLASH -> LOADING -> APP =====================
 document.getElementById("startBtn").onclick = enter;
@@ -657,7 +658,11 @@ async function loadBlob(blob, name){
   sourceName = name;
   const buf = await blob.arrayBuffer();
   let audio;
-  try{ audio = await ac.decodeAudioData(buf.slice(0)); }
+  // MK: decode with a FIXED sample rate. The live AudioContext follows the
+  // output device (a Bluetooth headset can pull it down to 24 or 16 kHz), which
+  // silently low-passes the clip and changes the prediction. 48 kHz matches the
+  // server's own decode of the original file.
+  try{ audio = await new OfflineAudioContext(1, 1, DECODE_RATE).decodeAudioData(buf.slice(0)); }
   catch(err){ alert("Could not read this file. Please use a normal mp3 or wav."); return; }
   // mono mix
   const ch = audio.numberOfChannels;
@@ -1227,18 +1232,18 @@ function buildExplain(){
   + '<h3>7 · The numbers, in full</h3>'
   + '<p>Everything below is one run of the <b>deployed</b> pipeline over the held-out test split: <b>447 original clips</b>, grouped by source recording so no cat is on both sides, cat-gate switched off (these are all cats). Accuracy and macro-F1 — the average F1 over the ten moods, so a rare mood counts as much as a common one.</p>'
   + '<div class="stats">'
-    + '<div class="stat"><img src="'+L+'"><div class="l">Leo · PANNs</div><div class="n">83.5%</div><div class="s">macro-F1 83.3 · matches Basti\'s notebook exactly</div></div>'
+    + '<div class="stat"><img src="'+L+'"><div class="l">Leo · PANNs</div><div class="n">83.5%</div><div class="s">macro-F1 83.3 · matches the training notebook exactly</div></div>'
     + '<div class="stat"><img src="'+R+'"><div class="l">PAW5 · AST</div><div class="n">88.1%</div><div class="s">macro-F1 88.2 · our best</div></div>'
-    + '<div class="stat"><img src="'+C+'"><div class="l">Minou · CNN</div><div class="n">81.7%</div><div class="s">macro-F1 81.5 · within 2 clips of Ceven\'s notebook</div></div>'
+    + '<div class="stat"><img src="'+C+'"><div class="l">Minou · CNN</div><div class="n">81.7%</div><div class="s">macro-F1 81.5 · within 2 clips of the training notebook</div></div>'
   + '</div>'
   + '<div class="two">'
     + '<div class="box"><p><b>Do they agree?</b> On 334 of 447 clips (75%) all three say the same thing. A majority vote of the three lands at <b>87.3%</b> — <i>below</i> AST alone. Voting does not buy accuracy here, because the models\' mistakes are correlated: they read the same picture and trip on the same ambiguities.</p></div>'
     + '<div class="box"><p><b>Where do they fail?</b> All three — and the 2018 paper — confuse <code>Happy</code> with <code>Paining</code> and <code>Warning</code> with <code>Mating</code>. Weakest classes by F1: PANNs Paining .69 / Happy .69; AST Paining .74 / Warning .79; CNN Paining .63 / Happy .67. <code>Resting</code> is 1.00 for all three.</p></div>'
   + '</div>'
-  + '<table class="tbl"><tr><th>model</th><th>backbone</th><th>head</th><th class="num">acc</th><th class="num">macro-F1</th><th>author</th></tr>'
-    + '<tr><td>PANNs</td><td>CNN14, AudioSet, 32 kHz · 11 s, frozen</td><td>StandardScaler + LogReg (C=0.01)</td><td class="num">83.5</td><td class="num">83.3</td><td>Basti</td></tr>'
-    + '<tr><td>AST</td><td>Audio Spectrogram Transformer, AudioSet, 16 kHz · 11 s, frozen, mean-pooled</td><td>LogReg (balanced)</td><td class="num hi">88.1</td><td class="num hi">88.2</td><td>Chris</td></tr>'
-    + '<tr><td>CNN</td><td>own 106 k-param CNN on log-mel, trained from scratch, loop-fill padding, natural-length eval</td><td>own softmax</td><td class="num">81.7</td><td class="num">81.5</td><td>Ceven</td></tr>'
+  + '<table class="tbl"><tr><th>model</th><th>backbone</th><th>head</th><th class="num">acc</th><th class="num">macro-F1</th></tr>'
+    + '<tr><td>PANNs</td><td>CNN14, AudioSet, 32 kHz · 11 s, frozen</td><td>StandardScaler + LogReg (C=0.01)</td><td class="num">83.5</td><td class="num">83.3</td></tr>'
+    + '<tr><td>AST</td><td>Audio Spectrogram Transformer, AudioSet, 16 kHz · 11 s, frozen, mean-pooled</td><td>LogReg (balanced)</td><td class="num hi">88.1</td><td class="num hi">88.2</td></tr>'
+    + '<tr><td>CNN</td><td>own 106 k-param CNN on log-mel, trained from scratch, loop-fill padding, natural-length eval</td><td>own softmax</td><td class="num">81.7</td><td class="num">81.5</td></tr>'
   + '</table>'
 
   + '<h3>8 · The leakage experiment — where the paper\'s 91% comes from</h3>'

@@ -96,6 +96,8 @@ button{font-family:inherit; cursor:pointer;}
 .drop.over{background:rgba(245,130,31,.16); border-color:var(--orange); color:#fff;}
 .drop .di{display:block; font-size:34px; margin-bottom:8px; opacity:.9;}
 .drop .dsub{display:inline-block; margin-top:6px; font-size:13px; opacity:.75;}
+/* MK: visually hidden, but still a real element - display:none file inputs misbehave on iOS */
+.vh{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
 .sel{width:100%; padding:13px 15px; border-radius:12px; background:#fff; color:var(--purple2); font-weight:600; font-size:16px; border:none;}
 /* custom dropdown (native <select> option lists can't be themed) */
 .dd{position:relative;}
@@ -357,7 +359,7 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
       </div>
       <div class="panel hidden" id="tab-upload">
         <label class="drop"><span class="di">🎵</span>Drop an audio file here, or click to choose<br><span class="dsub">mp3 · wav · m4a — an Apple voice memo works too</span>
-          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg" style="display:none">
+          <input type="file" id="fileInput" class="vh" accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg">
         </label>
       </div>
       <div class="panel hidden" id="tab-record">
@@ -408,7 +410,7 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
       <h2 class="ah">Sound <span class="tag">everything below runs on this</span></h2>
       <div id="ddEmpty">
         <label class="drop" for="ddFile"><span class="di">🎵</span>Drop an audio file here, or click to choose<br><span class="dsub">mp3 · wav · m4a — an Apple voice memo works too</span></label>
-        <input type="file" id="ddFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg" style="display:none">
+        <input type="file" id="ddFile" class="vh" accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg">
         <p class="ap small" style="margin-top:8px;">Or pick a sample on <b>The tool</b> — whatever is loaded there shows up here too.</p>
       </div>
       <div id="ddLoaded" class="hidden">
@@ -799,7 +801,8 @@ document.addEventListener("click", (e) => {
 });
 
 // ===================== UPLOAD =====================
-document.querySelector(".drop").onclick = () => document.getElementById("fileInput").click();
+// MK: no JS click here on purpose - the <label class="drop"> already opens its own
+// MK: file input. Doing both opened two pickers and iOS dropped the result.
 document.getElementById("fileInput").onchange = async (e) => {
   const f = e.target.files[0];
   if(f) await loadBlob(f, "file " + f.name);

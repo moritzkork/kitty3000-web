@@ -838,18 +838,56 @@ document.getElementById("recBtn").onclick = async function(){
 };
 
 // ===================== LOAD + DECODE =====================
+// MK: loading a file used to fail silently on some phones - one alert, no clue which step
+// MK: broke. Now every step is named and the failure is written onto the page.
+function showLoadError(step, err){
+  var msg = "Could not load this sound (step: " + step + ")";
+  if(err) msg += " - " + (err.name || "Error") + ": " + (err.message || String(err));
+  msg += ". mp3, wav, m4a (Apple voice memo), aac, flac and ogg all work; video files and DRM-protected tracks do not.";
+  var box = document.getElementById("resultBox");
+  if(box){
+    box.innerHTML = '<p class="warn"></p>';
+    box.querySelector(".warn").textContent = msg;       // MK: textContent, so an error string can never inject markup
+    box.scrollIntoView({behavior:"smooth", block:"center"});
+  } else {
+    alert(msg);
+  }
+}
+
+// MK: three ways to turn a file into samples, tried in order. The first is the good one
+// MK: (fixed 48 kHz, independent of the audio device). iOS Safari sometimes refuses an
+// MK: OfflineAudioContext, so the live context and the old callback form follow as backups.
+async function decodeAnyAudio(buf){
+  try{ return await new OfflineAudioContext(1, 1, DECODE_RATE).decodeAudioData(buf.slice(0)); }catch(e1){}
+  try{ return await ac.decodeAudioData(buf.slice(0)); }catch(e2){}
+  return await new Promise(function(resolve, reject){ ac.decodeAudioData(buf.slice(0), resolve, reject); });
+}
+
+// MK: Blob.arrayBuffer() is missing on older iOS Safari - FileReader always works
+async function readArrayBuffer(blob){
+  if(blob.arrayBuffer) return await blob.arrayBuffer();
+  return await new Promise(function(resolve, reject){
+    var r = new FileReader();
+    r.onload = function(){ resolve(r.result); };
+    r.onerror = function(){ reject(r.error || new Error("FileReader failed")); };
+    r.readAsArrayBuffer(blob);
+  });
+}
+
 async function loadBlob(blob, name, forTool){
   if(forTool === undefined) forTool = true;   // MK: default = update the tool UI; deep-dive autoload passes false
   currentTruth = null;   // MK: uploads/recordings have no known ground truth; sample loads set it afterwards
   sourceName = name;
-  const buf = await blob.arrayBuffer();
-  let audio;
-  // MK: decode with a FIXED sample rate. The live AudioContext follows the
-  // output device (a Bluetooth headset can pull it down to 24 or 16 kHz), which
-  // silently low-passes the clip and changes the prediction. 48 kHz matches the
-  // server's own decode of the original file.
-  try{ audio = await new OfflineAudioContext(1, 1, DECODE_RATE).decodeAudioData(buf.slice(0)); }
-  catch(err){ alert("Could not read this audio file. mp3, wav, m4a (Apple voice memo), aac, flac and ogg all work \u2014 video files and DRM-protected tracks do not."); return; }
+  var step = "reading the file";
+  var buf, audio;
+  try{
+    buf = await readArrayBuffer(blob);
+    if(!buf || !buf.byteLength) throw new Error("the file is empty (0 bytes)");
+    step = "decoding the audio (" + Math.round(buf.byteLength/1024) + " KB)";
+    audio = await decodeAnyAudio(buf);
+    if(!audio || !audio.length) throw new Error("decoded to 0 samples");
+  }catch(err){ showLoadError(step, err); return; }
+  try{
   // mono mix
   const ch = audio.numberOfChannels;
   const len = audio.length;
@@ -872,6 +910,7 @@ async function loadBlob(blob, name, forTool){
     document.querySelectorAll(".panel").forEach(p=>p.classList.add("hidden"));
   }
   refreshDeepDiveSound();   // MK: the deep-dive "Sound" card mirrors whatever is loaded
+  }catch(err){ showLoadError("showing the sound", err); }
 }
 
 function drawWave(){

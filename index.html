@@ -95,6 +95,7 @@ button{font-family:inherit; cursor:pointer;}
 .drop:hover{background:rgba(245,130,31,.10); border-color:var(--orange); color:#fff;}
 .drop.over{background:rgba(245,130,31,.16); border-color:var(--orange); color:#fff;}
 .drop .di{display:block; font-size:34px; margin-bottom:8px; opacity:.9;}
+.drop .dsub{display:inline-block; margin-top:6px; font-size:13px; opacity:.75;}
 .sel{width:100%; padding:13px 15px; border-radius:12px; background:#fff; color:var(--purple2); font-weight:600; font-size:16px; border:none;}
 /* custom dropdown (native <select> option lists can't be themed) */
 .dd{position:relative;}
@@ -355,8 +356,8 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
         <button class="surprise" id="surpriseBtn">🎲 Surprise me — random real cat</button>
       </div>
       <div class="panel hidden" id="tab-upload">
-        <label class="drop"><span class="di">🎵</span>Drop an mp3 / wav here, or click to choose
-          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav" style="display:none">
+        <label class="drop"><span class="di">🎵</span>Drop an audio file here, or click to choose<br><span class="dsub">mp3 · wav · m4a — an Apple voice memo works too</span>
+          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.aac,.mp4,.caf,.aiff,.aif,.flac,.ogg,.opus,.webm" style="display:none">
         </label>
       </div>
       <div class="panel hidden" id="tab-record">
@@ -406,8 +407,8 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
     <div class="card acard" id="ddSound">
       <h2 class="ah">Sound <span class="tag">everything below runs on this</span></h2>
       <div id="ddEmpty">
-        <label class="drop" for="ddFile"><span class="di">🎵</span>Drop an mp3 / wav here, or click to choose</label>
-        <input type="file" id="ddFile" accept="audio/*" style="display:none">
+        <label class="drop" for="ddFile"><span class="di">🎵</span>Drop an audio file here, or click to choose<br><span class="dsub">mp3 · wav · m4a — an Apple voice memo works too</span></label>
+        <input type="file" id="ddFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.mp4,.caf,.aiff,.aif,.flac,.ogg,.opus,.webm" style="display:none">
         <p class="ap small" style="margin-top:8px;">Or pick a sample on <b>The tool</b> — whatever is loaded there shows up here too.</p>
       </div>
       <div id="ddLoaded" class="hidden">
@@ -836,7 +837,7 @@ async function loadBlob(blob, name, forTool){
   // silently low-passes the clip and changes the prediction. 48 kHz matches the
   // server's own decode of the original file.
   try{ audio = await new OfflineAudioContext(1, 1, DECODE_RATE).decodeAudioData(buf.slice(0)); }
-  catch(err){ alert("Could not read this file. Please use a normal mp3 or wav."); return; }
+  catch(err){ alert("Could not read this audio file. mp3, wav, m4a (Apple voice memo), aac, flac and ogg all work \u2014 video files and DRM-protected tracks do not."); return; }
   // mono mix
   const ch = audio.numberOfChannels;
   const len = audio.length;

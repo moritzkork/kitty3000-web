@@ -357,7 +357,7 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
       </div>
       <div class="panel hidden" id="tab-upload">
         <label class="drop"><span class="di">🎵</span>Drop an audio file here, or click to choose<br><span class="dsub">mp3 · wav · m4a — an Apple voice memo works too</span>
-          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.aac,.mp4,.caf,.aiff,.aif,.flac,.ogg,.opus,.webm" style="display:none">
+          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg" style="display:none">
         </label>
       </div>
       <div class="panel hidden" id="tab-record">
@@ -408,7 +408,7 @@ html{background:var(--purple2);}   /* MK: safety net - never a white strip if th
       <h2 class="ah">Sound <span class="tag">everything below runs on this</span></h2>
       <div id="ddEmpty">
         <label class="drop" for="ddFile"><span class="di">🎵</span>Drop an audio file here, or click to choose<br><span class="dsub">mp3 · wav · m4a — an Apple voice memo works too</span></label>
-        <input type="file" id="ddFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.mp4,.caf,.aiff,.aif,.flac,.ogg,.opus,.webm" style="display:none">
+        <input type="file" id="ddFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg" style="display:none">
         <p class="ap small" style="margin-top:8px;">Or pick a sample on <b>The tool</b> — whatever is loaded there shows up here too.</p>
       </div>
       <div id="ddLoaded" class="hidden">
@@ -803,7 +803,19 @@ document.querySelector(".drop").onclick = () => document.getElementById("fileInp
 document.getElementById("fileInput").onchange = async (e) => {
   const f = e.target.files[0];
   if(f) await loadBlob(f, "file " + f.name);
+  e.target.value = "";   // MK: so picking the same file again still fires change
 };
+
+// MK: iOS turns "accept" into its own type identifiers and, when one entry does not map,
+// MK: greys out perfectly good audio - an Apple voice memo saved to Files is the usual
+// MK: victim. So on iOS we take the filter off and let loadBlob reject what it cannot
+// MK: decode (it shows a clear message). Desktop keeps the filtered file dialog.
+var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+         || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);   // iPadOS reports as Mac
+if(isIOS){
+  document.getElementById("fileInput").removeAttribute("accept");
+  document.getElementById("ddFile").removeAttribute("accept");
+}
 
 // ===================== RECORD =====================
 let mediaRec = null, chunks = [];
